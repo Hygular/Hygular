@@ -1100,4 +1100,90 @@ export default class Components {
       },
     };
   }
+
+  /**
+   * Enable pointer dragging on the swiper wrapper. Return an object with listener
+   * cleanup.
+   */
+  static swiper(element) {
+    if (!element) return;
+
+    const wrapper = element.querySelector(".swiper-wrapper");
+    if (!wrapper) return;
+
+    let isDragging = false;
+    let startX = 0;
+    let scrollStart = 0;
+    let moved = false;
+    const DRAG_THRESHOLD = 3; // px
+
+    const onPointerDown = (e) => {
+      isDragging = true;
+      moved = false;
+
+      element.classList.add("is-dragging");
+
+      startX = e.clientX;
+      scrollStart = wrapper.scrollLeft;
+
+      wrapper.setPointerCapture(e.pointerId);
+    };
+
+    const onPointerMove = (e) => {
+      if (!isDragging) return;
+
+      const delta = e.clientX - startX;
+
+      if (Math.abs(delta) > DRAG_THRESHOLD) {
+        moved = true;
+      }
+
+      const movement = delta * 1.15;
+      wrapper.scrollLeft = scrollStart - movement;
+    };
+
+    const onPointerUpOrCancel = (e) => {
+      if (!isDragging) return;
+
+      isDragging = false;
+      element.classList.remove("is-dragging");
+
+      wrapper.releasePointerCapture(e.pointerId);
+
+      // Suppress the click produced by a drag so links are not activated accidentally.
+      if (moved) {
+        const preventClick = (ev) => {
+          ev.preventDefault();
+          ev.stopImmediatePropagation();
+        };
+
+        wrapper.addEventListener("click", preventClick, {
+          capture: true,
+          once: true,
+        });
+      }
+    };
+
+    wrapper.addEventListener("pointerdown", onPointerDown, { passive: true });
+    wrapper.addEventListener("pointermove", onPointerMove, { passive: false });
+    wrapper.addEventListener("pointerup", onPointerUpOrCancel, {
+      passive: true,
+    });
+    wrapper.addEventListener("pointercancel", onPointerUpOrCancel, {
+      passive: true,
+    });
+    wrapper.addEventListener("pointerleave", onPointerUpOrCancel, {
+      passive: true,
+    });
+
+    return {
+      dispose: () => {
+        wrapper.removeEventListener("pointerdown", onPointerDown);
+        wrapper.removeEventListener("pointermove", onPointerMove);
+        wrapper.removeEventListener("pointerup", onPointerUpOrCancel);
+        wrapper.removeEventListener("pointercancel", onPointerUpOrCancel);
+        wrapper.removeEventListener("pointerleave", onPointerUpOrCancel);
+      },
+    };
+  }
 }

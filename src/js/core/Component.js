@@ -258,4 +258,125 @@ export default class Components {
       return true;
     }
   }
+
+  /**
+   * Initialize collapse state and bind delegated toggles. Return the listener
+   * cleanup function.
+   */
+  static collapse() {
+    const CONFIG = {
+      trigger: '[data-hygular-toggle="collapse"]',
+
+      attrs: {
+        target: "data-target",
+      },
+
+      classes: {
+        open: "is-open",
+      },
+
+      defaults: {
+        duration: 300,
+      },
+    };
+
+    const locks = new WeakSet();
+
+    const updateState = (btn, target, isOpen) => {
+      btn.classList.toggle(CONFIG.classes.open, isOpen);
+      btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+
+      if (target.id) {
+        btn.setAttribute("aria-controls", target.id);
+      }
+
+      target.classList.toggle(CONFIG.classes.open, isOpen);
+      target.setAttribute("data-state", isOpen ? "open" : "closed");
+    };
+
+    const setInitialState = () => {
+      document.querySelectorAll(CONFIG.trigger).forEach((btn) => {
+        const targetSelector = btn.getAttribute(CONFIG.attrs.target);
+        if (!targetSelector) return;
+
+        const target = document.querySelector(targetSelector);
+        if (!target) return;
+
+        const isOpen =
+          btn.classList.contains(CONFIG.classes.open) ||
+          target.classList.contains(CONFIG.classes.open) ||
+          target.getAttribute("data-initial-open") === "true";
+
+        updateState(btn, target, isOpen);
+
+        if (isOpen) {
+          target.style.display = "block";
+        } else {
+          target.style.display = "none";
+        }
+      });
+    };
+
+    const toggleCollapse = async (btn) => {
+      if (btn.disabled || btn.getAttribute("aria-disabled") === "true") return;
+
+      const targetSelector = btn.getAttribute(CONFIG.attrs.target);
+      if (!targetSelector) return;
+
+      const target = document.querySelector(targetSelector);
+      if (!target) return;
+
+      if (locks.has(target)) return;
+      locks.add(target);
+
+      const isOpen = target.classList.contains(CONFIG.classes.open);
+
+      const eventName = isOpen ? "close" : "open";
+      const startEvent = new CustomEvent(`hygular.collapse.${eventName}`, {
+        detail: { trigger: btn, target },
+        bubbles: true,
+        cancelable: true,
+      });
+
+      target.dispatchEvent(startEvent);
+
+      if (startEvent.defaultPrevented) {
+        locks.delete(target);
+        return;
+      }
+
+      updateState(btn, target, !isOpen);
+
+      if (isOpen) {
+        await DomUtils.slideUp(target, CONFIG.defaults.duration);
+      } else {
+        await DomUtils.slideDown(target, CONFIG.defaults.duration);
+      }
+
+      target.dispatchEvent(
+        new CustomEvent(`hygular.collapse.${isOpen ? "closed" : "opened"}`, {
+          detail: { trigger: btn, target },
+          bubbles: true,
+        }),
+      );
+
+      locks.delete(target);
+    };
+
+    const clickHandler = (evt) => {
+      const btn = evt.target.closest(CONFIG.trigger);
+      if (!btn) return;
+
+      evt.preventDefault();
+      toggleCollapse(btn);
+    };
+
+    setInitialState();
+
+    document.addEventListener("click", clickHandler);
+
+    return () => {
+      document.removeEventListener("click", clickHandler);
+    };
+  }
 }

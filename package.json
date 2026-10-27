@@ -1,0 +1,100 @@
+{
+  "name": "hygular",
+  "version": "1.0.0-beta.1",
+  "description": "Modern front-end framework. Lightweight, powerful, no chaos.",
+  "author": "Eyruz Badalzada",
+  "license": "MIT",
+  "homepage": "https://hygular.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hygular/Hygular.git"
+  },
+  "keywords": [
+    "css",
+    "css-framework",
+    "utility-css",
+    "ui",
+    "ui-components",
+    "ui-library",
+    "frontend",
+    "frontend-framework",
+    "components",
+    "responsive",
+    "bootstrap-alternative",
+    "tailwind-alternative"
+  ],
+  "type": "module",
+  "types": "./index.d.ts",
+  "main": "./dist/js/hygular.esm.js",
+  "module": "./dist/js/hygular.esm.js",
+  "browser": "./dist/js/hygular.min.js",
+  "style": "./dist/css/hygular.min.css",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./dist/js/hygular.esm.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/hygular-react.esm.js"
+    },
+    "./css": "./dist/css/hygular.min.css",
+    "./css/source": "./dist/css/hygular.css"
+  },
+  "peerDependencies": {
+    "react": ">=17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist/js/",
+    "dist/css/",
+    "dist/react/",
+    "build/",
+    "index.d.ts",
+    "README.md",
+    "LICENSE",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "dev": "rollup -c -w",
+    "build": "npm run clean && rollup -c",
+    "build:watch": "rollup -c -w",
+    "test": "node --test tests/*.test.js",
+    "test:types": "tsc -p tests/types/tsconfig.json",
+    "test:browser": "node tests/browser/run.js",
+    "test:colors": "node tests/colors/run.mjs",
+    "test:all": "npm run build && npm test && npm run test:types && npm run test:package && npm run test:browser && npm run test:colors",
+    "test:package": "node --test tests/package/*.test.js",
+    "clean": "node build/clean.js",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run test:all"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^1.0.0",
+    "chokidar": "^5.0.0",
+    "cssnano": "^7.1.4",
+    "glob": "^13.0.6",
+    "postcss": "^8.5.14",
+    "postcss-preset-env": "^11.2.1",
+    "rollup": "^4.60.1",
+    "rollup-plugin-cleanup": "^3.2.1",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-postcss": "^4.0.2",
+    "jsdom": "^30.1.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^7.0.2",
+    "playwright": "1.51.1"
+  }
+}

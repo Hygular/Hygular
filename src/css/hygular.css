@@ -4085,6 +4085,134 @@ background: transparent;
     padding: 0.8rem 0 0 0;
   }
 
+  
+  /* Tooltips */
+  .tooltip {
+    --tooltip-bg: oklch(22% 0 0);
+    --tooltip-arrow-size: 0.5rem;
+    --tooltip-arrow-half: calc(var(--tooltip-arrow-size) / 2);
+    --tooltip-arrow-radius: 2px;
+    --tooltip-arrow-inset: 12px;
+    position: absolute;
+    max-width: 20rem;
+    background-color: var(--tooltip-bg);
+    color: oklch(95% 0 0);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.87rem;
+    line-height: 1.4;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 200ms ease,
+      transform 200ms ease;
+    z-index: var(--z-tooltip);
+  }
+
+  [data-hygular-theme="dark"] .tooltip {
+    --tooltip-bg: oklch(28% 0 0);
+  }
+
+  .tooltip.is-open {
+    opacity: 0.95;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .tooltip::after {
+    content: "";
+    position: absolute;
+    display: none;
+    width: var(--tooltip-arrow-size);
+    height: var(--tooltip-arrow-size);
+    background: var(--tooltip-bg);
+    border-radius: var(--tooltip-arrow-radius);
+    transform: rotate(45deg);
+    z-index: -1;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+  }
+
+  .tooltip.has-arrow::after {
+    display: block;
+  }
+
+  /* is-top / is-bottom */
+  .tooltip.is-top {
+    bottom: calc(100% + 6px);
+    left: 0;
+    right: auto;
+    transform: translateY(-6px);
+  }
+  .tooltip.is-top::after {
+    top: 100%;
+    left: var(--tooltip-arrow-inset);
+    margin-top: calc(var(--tooltip-arrow-half) * -1);
+  }
+
+  .tooltip.is-bottom {
+    top: calc(100% + 6px);
+    left: 0;
+    transform: translateY(6px);
+  }
+  .tooltip.is-bottom::after {
+    top: 0;
+    left: var(--tooltip-arrow-inset);
+    margin-top: calc(var(--tooltip-arrow-half) * -1);
+  }
+
+  [dir="rtl"] .tooltip.is-top::after,
+  [dir="rtl"] .tooltip.is-bottom::after {
+    left: auto;
+    right: var(--tooltip-arrow-inset);
+  }
+
+  /* Top and bottom placements */
+  .tooltip.is-left {
+    right: calc(100% + 6px);
+    top: 0;
+    transform: translateX(-6px);
+  }
+  .tooltip.is-left::after {
+    right: 0;
+    top: var(--tooltip-arrow-inset);
+    margin-right: calc(var(--tooltip-arrow-half) * -1);
+  }
+
+  [dir="rtl"] .tooltip.is-left {
+    right: auto;
+    left: calc(100% + 6px);
+  }
+  [dir="rtl"] .tooltip.is-left::after {
+    right: auto;
+    left: 0;
+    margin-right: 0;
+    margin-left: calc(var(--tooltip-arrow-half) * -1);
+  }
+
+  .tooltip.is-right {
+    left: calc(100% + 6px);
+    top: 0;
+    transform: translateX(6px);
+  }
+  .tooltip.is-right::after {
+    left: 0;
+    top: var(--tooltip-arrow-inset);
+    margin-left: calc(var(--tooltip-arrow-half) * -1);
+  }
+
+  [dir="rtl"] .tooltip.is-right {
+    left: auto;
+    right: calc(100% + 6px);
+  }
+  [dir="rtl"] .tooltip.is-right::after {
+    left: auto;
+    right: 0;
+    margin-left: 0;
+    margin-right: calc(var(--tooltip-arrow-half) * -1);
+  }
+
 }
 
 @layer utilities {

@@ -7660,4 +7660,164 @@
     border-end-end-radius: var(--radius-2);
   }
 
+  /* Background */
+  .bg-auto {
+    background-size: auto;
+  }
+
+  .bg-cover {
+    background-size: cover;
+  }
+
+  .bg-contain {
+    background-size: contain;
+  }
+
+  .bg-full {
+    background-size: 100% 100%;
+  }
+
+  .bg-bottom {
+    background-position: bottom;
+  }
+
+  .bg-center {
+    background-position: center;
+  }
+
+  .bg-left {
+    background-position: left;
+  }
+
+  .bg-left-bottom {
+    background-position: left bottom;
+  }
+
+  .bg-left-top {
+    background-position: left top;
+  }
+
+  .bg-right {
+    background-position: right;
+  }
+
+  .bg-right-bottom {
+    background-position: right bottom;
+  }
+
+  .bg-right-top {
+    background-position: right top;
+  }
+
+  .bg-top {
+    background-position: top;
+  }
+
+  .bg-repeat {
+    background-repeat: repeat;
+  }
+
+  .bg-no-repeat {
+    background-repeat: no-repeat;
+  }
+
+  .bg-repeat-x {
+    background-repeat: repeat-x;
+  }
+
+  .bg-repeat-y {
+    background-repeat: repeat-y;
+  }
+
+  .bg-repeat-round {
+    background-repeat: round;
+  }
+
+  .bg-repeat-space {
+    background-repeat: space;
+  }
+
+  .bg-fixed {
+    background-attachment: fixed;
+  }
+
+  .bg-local {
+    background-attachment: local;
+  }
+
+  .bg-scroll {
+    background-attachment: scroll;
+  }
+
+  .bg-clip-border {
+    background-clip: border-box;
+  }
+
+  .bg-clip-padding {
+    background-clip: padding-box;
+  }
+
+  .bg-clip-content {
+    background-clip: content-box;
+  }
+
+  .bg-clip-text {
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .bg-origin-border {
+    background-origin: border-box;
+  }
+
+  .bg-origin-padding {
+    background-origin: padding-box;
+  }
+
+  .bg-origin-content {
+    background-origin: content-box;
+  }
+
+  .bg-none {
+    background-image: none;
+  }
+
+  .bg-preset-cover {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .bg-blend-normal {
+    background-blend-mode: normal;
+  }
+
+  .bg-blend-multiply {
+    background-blend-mode: multiply;
+  }
+
+  .bg-blend-screen {
+    background-blend-mode: screen;
+  }
+
+  .bg-blend-overlay {
+    background-blend-mode: overlay;
+  }
+
+  .bg-blend-darken {
+    background-blend-mode: darken;
+  }
+
+  .bg-blend-lighten {
+    background-blend-mode: lighten;
+  }
+
+  .bg-blend-color {
+    background-blend-mode: color;
+  }
+
+  .bg-blend-luminosity {
+    background-blend-mode: luminosity;
+  }
 }

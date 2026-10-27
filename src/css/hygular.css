@@ -4707,6 +4707,201 @@ background: transparent;
     transform: translate3d(0, 0, 0);
   }
 
+   /* Navbar */
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    min-height: var(--navbar-height);
+    padding: var(--navbar-padding-y) var(--navbar-padding-x);
+    background-color: var(--navbar, transparent);
+    color: var(--navbar-text, var(--body-text));
+    position: relative;
+    width: 100%;
+    gap: 1rem;
+    transition:
+      background-color 300ms ease,
+      box-shadow 300ms ease,
+      backdrop-filter 300ms ease;
+  }
+
+  .navbar-start {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .navbar-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    flex: 1;
+    min-width: 0;
+    position: static;
+    transform: none;
+  }
+
+  .navbar-end {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+  }
+
+  .navbar-brand {
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+
+  .navbar-brand .brand-link {
+    display: flex;
+    align-items: center;
+    color: inherit;
+    gap: 0.75rem;
+    text-decoration: none;
+    outline: none;
+  }
+
+  .navbar-brand span {
+    color: inherit;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .navbar-brand img {
+    height: 2rem;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .navbar-links {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .navbar-toggler:focus,
+  .navbar-toggler:hover,
+  .navbar-toggler:active {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .navbar-toggler {
+    --toggler-size: 2.75rem;
+    --toggler-icon-width: 24px;
+    --toggler-line-height: 2px;
+    --toggler-line-gap: 6px;
+    --toggler-duration: 260ms;
+    --toggler-easing: cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    width: var(--toggler-size);
+    height: var(--toggler-size);
+    flex: 0 0 var(--toggler-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .navbar-toggler span {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--toggler-icon-width);
+    height: var(--toggler-line-height);
+    background: currentColor;
+    border-radius: 999px;
+    transform-origin: center;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+    transition:
+      transform var(--toggler-duration) var(--toggler-easing),
+      opacity 180ms ease;
+  }
+
+  .navbar-toggler span:nth-child(1) {
+    transform: translate3d(-50%, calc(-50% - var(--toggler-line-gap)), 0);
+  }
+
+  .navbar-toggler span:nth-child(2) {
+    transform: translate3d(-50%, -50%, 0);
+  }
+
+  .navbar-toggler span:nth-child(3) {
+    transform: translate3d(-50%, calc(-50% + var(--toggler-line-gap)), 0);
+  }
+
+  .navbar-toggler.is-active span:nth-child(1),
+  .navbar-toggler.is-active span:nth-child(1) {
+    transform: translate3d(-50%, -50%, 0) rotate(45deg) scaleX(0.92);
+  }
+
+  .navbar-toggler.is-active span:nth-child(2),
+  .navbar-toggler.is-active span:nth-child(2) {
+    opacity: 0;
+    transform: translate3d(-50%, -50%, 0) scaleX(0.35);
+  }
+
+  .navbar-toggler.is-active span:nth-child(3),
+  .navbar-toggler.is-active span:nth-child(3) {
+    transform: translate3d(-50%, -50%, 0) rotate(-45deg) scaleX(0.92);
+  }
+
+  .navbar-menu {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    margin-bottom: 1rem;
+  }
+
+  @media (min-width: var(--breakpoint-lg)) {
+    .navbar-toggler {
+      display: none;
+    }
+
+    .navbar-menu {
+      display: none;
+    }
+
+    .navbar-links {
+      display: inline-flex;
+    }
+  }
+
+  .navbar.is-medium {
+    --navbar-height: 5rem;
+    --navbar-padding-y: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .navbar.is-large {
+    --navbar-height: 6rem;
+    --navbar-padding-y: 1rem;
+    font-size: 1.0625rem;
+  }
+
+  .navbar.is-medium .navbar-brand {
+    font-size: 1.375rem;
+  }
+
+  .navbar.is-large .navbar-brand {
+    font-size: 1.5rem;
+  }
+
 
 }
 

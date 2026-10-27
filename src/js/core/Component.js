@@ -659,4 +659,79 @@ export default class Components {
       scrollLock.unlock();
     };
   }
+
+  /**
+   * Bind delegated navbar toggles. Return a function that removes the click
+   * listener.
+   */
+  static navbar() {
+    const CONFIG = {
+      trigger: '[data-hygular-toggle="navbar"]',
+
+      selectors: {
+        menu: ".navbar-menu",
+      },
+
+      classes: {
+        toggle: "is-active",
+      },
+    };
+
+    const lockMap = new WeakMap();
+    const menus = new Set();
+    let disposed = false;
+
+    const handler = async (e) => {
+      const btn = e.target.closest(CONFIG.trigger);
+      if (!btn) return;
+
+      e.preventDefault();
+      const targetSelector = btn.getAttribute("data-target");
+      if (!targetSelector) return;
+
+      const menu = document.querySelector(targetSelector);
+      if (!menu) return;
+
+      if (disposed || lockMap.get(menu)) return;
+      menus.add(menu);
+      menu._disposeEsc?.();
+      menu._disposeEsc = null;
+      lockMap.set(menu, true);
+
+      const isOpen = btn.classList.contains(CONFIG.classes.toggle);
+
+      document.querySelectorAll(CONFIG.selectors.menu).forEach((el) => {
+        if (el !== menu)
+          DomUtils.slideUp(el).finally(() => lockMap.set(el, false));
+      });
+      document.querySelectorAll(CONFIG.trigger).forEach((el) => {
+        if (el !== btn) el.classList.remove(CONFIG.classes.toggle);
+      });
+
+      if (isOpen) {
+        btn.classList.remove(CONFIG.classes.toggle);
+        await DomUtils.slideUp(menu, 300);
+      } else {
+        btn.classList.add(CONFIG.classes.toggle);
+        await DomUtils.slideDown(menu, 300, "flex");
+        if (disposed) return;
+        const disposeEsc = DomUtils.closeOnEscape(menu, btn, 300);
+        menu._disposeEsc = disposeEsc;
+      }
+
+      lockMap.set(menu, false);
+    };
+
+    document.body.addEventListener("click", handler);
+    return () => {
+      disposed = true;
+      document.body.removeEventListener("click", handler);
+      menus.forEach((menu) => {
+        menu._disposeEsc?.();
+        menu._disposeEsc = null;
+        menu.getAnimations?.().forEach((animation) => animation.cancel());
+      });
+      menus.clear();
+    };
+  }
 }

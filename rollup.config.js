@@ -36,6 +36,19 @@ const stripCssCommentsPlugin = () => {
 };
 stripCssCommentsPlugin.postcss = true;
 
+// Omit JavaScript chunks from CSS-only builds.
+const cssOnlyOutputPlugin = () => ({
+  name: "css-only-output",
+
+  generateBundle(_options, bundle) {
+    for (const [fileName, output] of Object.entries(bundle)) {
+      if (output.type === "chunk") {
+        delete bundle[fileName];
+      }
+    }
+  },
+});
+
 export default [
   // Shared ESM chunks keep core state identical across both entry points.
   {
@@ -109,6 +122,7 @@ export default [
           }),
         ],
       }),
+      cssOnlyOutputPlugin(),
     ],
   },
 
@@ -132,6 +146,7 @@ export default [
           }),
         ],
       }),
+      cssOnlyOutputPlugin(),
     ],
   },
 ];

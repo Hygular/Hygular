@@ -734,4 +734,124 @@ export default class Components {
       menus.clear();
     };
   }
+
+  /**
+   * Bind dropdown click, Escape, and supported hover interactions. Return listener
+   * cleanup.
+   */
+  static dropdown() {
+    const CONFIG = {
+      selector: ".dropdown",
+
+      trigger: '[data-hygular-toggle="dropdown"]',
+
+      selectors: {
+        menu: ".dropdown-menu",
+      },
+
+      classes: {
+        active: "is-active",
+      },
+
+      attrs: {
+        triggerMode: "data-trigger",
+      },
+    };
+
+    const toggleDropdown = (drop, show) => {
+      show
+        ? drop.classList.add(CONFIG.classes.active)
+        : drop.classList.remove(CONFIG.classes.active);
+      const trigger = drop.querySelector(CONFIG.trigger);
+      if (trigger)
+        trigger.setAttribute("aria-expanded", show ? "true" : "false");
+    };
+
+    const closeAll = (except = null) => {
+      document
+        .querySelectorAll(`${CONFIG.selector}.${CONFIG.classes.active}`)
+        .forEach((drop) => {
+          if (drop !== except) toggleDropdown(drop, false);
+        });
+    };
+    const clickHandler = (evt) => {
+      const trigger = evt.target.closest(CONFIG.trigger);
+      const isInsideMenu = evt.target.closest(CONFIG.selectors.menu);
+
+      if (isInsideMenu) {
+        const link = evt.target.closest("a");
+        if (link) {
+          const drop = isInsideMenu.closest(CONFIG.selector);
+          if (drop) toggleDropdown(drop, false);
+        }
+        return;
+      }
+
+      if (!trigger) {
+        closeAll();
+        return;
+      }
+
+      const drop = trigger.closest(CONFIG.selector);
+      if (!drop) return;
+
+      closeAll(drop);
+      const isActive = drop.classList.contains(CONFIG.classes.active);
+      toggleDropdown(drop, !isActive);
+    };
+
+    const keyHandler = (evt) => {
+      if (evt.key === "Escape" || evt.key === "Esc") closeAll();
+    };
+
+    document.addEventListener("click", clickHandler);
+    document.addEventListener("keydown", keyHandler);
+
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      const hoverTimers = new WeakMap();
+
+      const mouseoverHandler = (evt) => {
+        const hoverEl = evt.target.closest(
+          `${CONFIG.selector}[${CONFIG.attrs.triggerMode}="hover"]`,
+        );
+        if (!hoverEl) return;
+        if (hoverTimers.has(hoverEl)) {
+          clearTimeout(hoverTimers.get(hoverEl));
+          hoverTimers.delete(hoverEl);
+        }
+        closeAll(hoverEl);
+        toggleDropdown(hoverEl, true);
+      };
+
+      const mouseoutHandler = (evt) => {
+        const hoverEl = evt.target.closest(
+          `${CONFIG.selector}[${CONFIG.attrs.triggerMode}="hover"]`,
+        );
+        if (!hoverEl) return;
+        if (hoverTimers.has(hoverEl)) clearTimeout(hoverTimers.get(hoverEl));
+        const timer = setTimeout(() => {
+          if (!hoverEl.matches(":hover") && !hoverEl.querySelector(":hover")) {
+            toggleDropdown(hoverEl, false);
+          }
+          hoverTimers.delete(hoverEl);
+        }, 150);
+        hoverTimers.set(hoverEl, timer);
+      };
+
+      document.addEventListener("mouseover", mouseoverHandler);
+      document.addEventListener("mouseout", mouseoutHandler);
+
+      return () => {
+        document.removeEventListener("click", clickHandler);
+        document.removeEventListener("keydown", keyHandler);
+        document.removeEventListener("mouseover", mouseoverHandler);
+        document.removeEventListener("mouseout", mouseoutHandler);
+      };
+    }
+
+    return () => {
+      document.removeEventListener("click", clickHandler);
+      document.removeEventListener("keydown", keyHandler);
+    };
+  }
 }

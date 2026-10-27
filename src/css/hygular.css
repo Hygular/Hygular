@@ -5282,6 +5282,137 @@ background: transparent;
     }
   }
 
+   /* Skeletons */
+  [data-skeleton] {
+    position: relative;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  [data-skeleton] > *:not([data-skeleton-ignore]) {
+    visibility: hidden !important;
+    pointer-events: none;
+  }
+
+  .hygular-sk-wave-overlay {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .hygular-sk-wave-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      oklch(98% 0.004 240 / 0.85) 50%,
+      transparent 70%
+    );
+    background-size: 250% 100%;
+    will-change: background-position;
+    animation: hygular-sk-wave 1.8s ease-in-out infinite;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .hygular-sk-ghost {
+    display: block;
+    background-color: var(--surface-raised);
+    z-index: 0;
+  }
+
+  [data-hygular-theme="dark"] .hygular-sk-wave-overlay::before {
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      oklch(35% 0.006 240 / 0.7) 50%,
+      transparent 70%
+    );
+    background-size: 250% 100%;
+  }
+
+  [data-skeleton-error] {
+    position: relative;
+    overflow: hidden;
+    min-height: 5rem;
+  }
+
+  [data-skeleton-error] > *:not([data-skeleton-ignore]) {
+    visibility: hidden !important;
+  }
+
+  .hygular-sk-error-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .hygular-sk-error-layer svg {
+    color: var(--red-400);
+    opacity: 0.85;
+  }
+
+  .hygular-sk-error-msg {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .hygular-sk-retry {
+    margin-top: 0.25rem;
+    padding: 0.3rem 0.875rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--red-300);
+    background: transparent;
+    color: color-mix(in srgb, var(--danger) 65%, var(--body-text));
+    transition:
+      background 180ms,
+      color 180ms;
+  }
+
+  .hygular-sk-retry:hover {
+    background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  }
+
+  .hygular-sk-retry:focus-visible {
+    outline: 2px solid var(--body-text);
+    outline-offset: 2px;
+  }
+
+  @keyframes hygular-sk-wave {
+    0% {
+      background-position: 200% center;
+    }
+
+    100% {
+      background-position: -200% center;
+    }
+  }
+
+  @keyframes hygular-sk-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.4;
+    }
+  }
+
 }
 
 @layer utilities {

@@ -1500,4 +1500,38 @@
       display: contents !important;
     }
   }
+
+   /* Pointer events */
+  .pointer-none {
+    pointer-events: none;
+  }
+
+  .pointer-auto {
+    pointer-events: auto;
+  }
+
+/* Cursor */
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  .cursor-not-allowed {
+    cursor: not-allowed;
+  }
+
+  .cursor-grab {
+    cursor: grab;
+  }
+
+  .cursor-grabbing {
+    cursor: grabbing;
+  }
+
+  .cursor-text {
+    cursor: text;
+  }
+
+  .cursor-wait {
+    cursor: wait;
+  }
 }

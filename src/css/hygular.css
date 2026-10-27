@@ -1678,6 +1678,126 @@
     align-items: center;
   }
 
+  /* Badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-family: inherit;
+    line-height: 1;
+    white-space: nowrap;
+    border-radius: 0.25rem;
+    padding: 0.3em 0.6em;
+    vertical-align: middle;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      opacity 150ms ease,
+      transform 150ms ease;
+  }
+
+  .badge:empty:not(.is-dot):not([data-count]) {
+    display: none !important;
+  }
+
+  .badge:is(a, button):hover {
+    filter: brightness(0.96);
+    transform: translateY(-1px);
+  }
+
+  .badge:is(a, button):active {
+    transform: translateY(0);
+    filter: brightness(0.92);
+  }
+
+  .badge:is(a, button):focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px oklch(from currentColor l c h / 0.4);
+  }
+
+  .badge.is-pill {
+    border-radius: 999px;
+    padding: 0.3em 0.75em;
+  }
+
+  .badge.is-outline {
+    background: transparent;
+    border: 1.5px solid currentColor;
+  }
+
+  .badge.is-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    min-width: unset;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .badge.is-floating {
+    position: absolute;
+    top: -0.5rem;
+    right: -0.5rem;
+    z-index: 10;
+    border: 2px solid var(--primary);
+    pointer-events: none;
+  }
+
+  .badge.is-floating.rounded-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.45rem;
+    height: 1.45rem;
+    min-width: 1.45rem;
+    padding: 0;
+    font-size: 0.65rem;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .badge.is-floating.is-pill {
+    border-radius: 999px;
+    padding: 0.2em 0.5em;
+  }
+
+  .badge.is-primary {
+    background: var(--primary);
+    color: var(--primary-contrast);
+  }
+
+  .badge.is-success {
+    background-color: var(--success);
+    color: var(--success-contrast);
+  }
+
+  .badge.is-warning {
+    background-color: var(--warning);
+    color: var(--warning-contrast);
+  }
+
+  .badge.is-danger {
+    background: var(--danger);
+    color: var(--danger-contrast);
+  }
+
+  /* Outline colors*/
+  .badge.is-primary-outline {
+    color: color-mix(in srgb, var(--primary) 50%, var(--body-text));
+  }
+
+  .badge.is-success-outline {
+    color: color-mix(in srgb, var(--success) 50%, var(--body-text));
+  }
+
+  .badge.is-warning-outline {
+    color: color-mix(in srgb, var(--warning) 50%, var(--body-text));
+  }
+
+  .badge.is-danger-outline {
+    color: color-mix(in srgb, var(--danger) 50%, var(--body-text));
+  }
 
   /* Collapse */
   .collapse {

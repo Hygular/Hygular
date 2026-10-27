@@ -260,6 +260,20 @@ export default class Components {
   }
 
   /**
+   * Read data-count and display values of 100 or more as 99+.
+   */
+  static badge(element) {
+    const countRaw = element.getAttribute("data-count");
+    if (!countRaw) return;
+
+    const count = Number(countRaw);
+    if (Number.isNaN(count)) return;
+
+    element.textContent = count < 100 ? count : "99+";
+    element.setAttribute("aria-label", `${count}`);
+  }
+
+  /**
    * Initialize collapse state and bind delegated toggles. Return the listener
    * cleanup function.
    */

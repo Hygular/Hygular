@@ -9484,4 +9484,35 @@
     object-position: right;
   }
 
+   /* Focus rings */
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px oklch(from var(--accent) l c h / 0.25);
+  }
+
+  .focus-ring-danger:focus-visible {
+    outline: 2px solid var(--body-text);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px oklch(from var(--danger) l c h / 0.25);
+  }
+
+  .focus-ring-warning:focus-visible {
+    outline: 2px solid var(--body-text);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px oklch(from var(--warning) l c h / 0.25);
+  }
+
+  .focus-ring-success:focus-visible {
+    outline: 2px solid var(--body-text);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px oklch(from var(--success) l c h / 0.25);
+  }
+
+  .focus-ring-info:focus-visible {
+    outline: 2px solid var(--body-text);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px oklch(from var(--info) l c h / 0.25);
+  }
+
 }

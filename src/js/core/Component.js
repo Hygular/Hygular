@@ -393,4 +393,270 @@ export default class Components {
       document.removeEventListener("click", clickHandler);
     };
   }
+
+  /**
+   * Bind drawer controls, focus handling, and scroll locking. Return the cleanup
+   * function.
+   */
+  static drawer() {
+    const CONFIG = {
+      parent: ".drawer",
+
+      selectors: {
+        dismissBtn: ".drawer-close",
+        panel: ".drawer-panel",
+        focusable:
+          'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      },
+
+      classes: {
+        open: "is-open",
+      },
+
+      attrs: {
+        target: "data-target",
+      },
+
+      defaults: {
+        transitionDuration: 420,
+      },
+    };
+
+    let activeDrawer = null;
+    let disposed = false;
+    const timers = new Set();
+    const transitions = new Map();
+    const drawers = new Set();
+    // Track delayed drawer work so disposal can cancel it.
+    const schedule = (callback, delay) => {
+      const timer = setTimeout(() => {
+        timers.delete(timer);
+        if (!disposed) callback();
+      }, delay);
+      timers.add(timer);
+    };
+    let drawerLock = false;
+    const scrollLock = new ScrollLock();
+
+    const trapFocus = (drawer) => {
+      const focusables = Array.from(
+        drawer.querySelectorAll(CONFIG.selectors.focusable),
+      ).filter((el) => el.offsetParent !== null);
+      if (!focusables.length) {
+        drawer.focus();
+        return;
+      }
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      const keyHandler = (e) => {
+        if (e.key !== "Tab") return;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      };
+
+      drawer._focusHandler = keyHandler;
+      drawer.addEventListener("keydown", keyHandler);
+      first.focus();
+    };
+
+    const releaseFocusTrap = (drawer) => {
+      if (drawer._focusHandler) {
+        drawer.removeEventListener("keydown", drawer._focusHandler);
+        drawer._focusHandler = null;
+      }
+    };
+
+    const isNavigationalLink = (link) => {
+      if (!link) return false;
+      if (
+        link.hasAttribute("data-hygular-toggle") ||
+        link.closest("[data-hygular-toggle]")
+      ) {
+        return false;
+      }
+      const href = link.getAttribute("href");
+      if (href === null) return false; // An anchor without href is not a navigation target.
+      const trimmed = href.trim();
+      if (trimmed === "" || trimmed === "#") return false;
+      if (trimmed.toLowerCase().startsWith("javascript:")) return false;
+      return true;
+    };
+
+    const openDrawer = (drawer) => {
+      if (
+        disposed ||
+        drawerLock ||
+        drawer.classList.contains(CONFIG.classes.open)
+      )
+        return;
+
+      const openEvent = new CustomEvent("hygular.drawer.open", {
+        detail: { drawer },
+        bubbles: true,
+        cancelable: true,
+      });
+      drawer.dispatchEvent(openEvent);
+      if (openEvent.defaultPrevented || disposed) return;
+
+      drawerLock = true;
+      activeDrawer = drawer;
+      drawers.add(drawer);
+      drawer.setAttribute("aria-modal", "true");
+      drawer.setAttribute("role", "dialog");
+      drawer.setAttribute("tabindex", "-1");
+
+      if (!drawer.classList.contains("has-no-backdrop")) {
+        scrollLock.lock();
+      }
+
+      DomUtils.afterPaint(() => {
+        if (!disposed && activeDrawer === drawer && drawers.has(drawer))
+          drawer.classList.add(CONFIG.classes.open);
+      });
+
+      schedule(() => {
+        if (activeDrawer !== drawer) return;
+        trapFocus(drawer);
+        drawerLock = false;
+        drawer.dispatchEvent(
+          new CustomEvent("hygular.drawer.opened", {
+            detail: { drawer },
+            bubbles: true,
+          }),
+        );
+      }, CONFIG.defaults.transitionDuration + 50);
+    };
+
+    const closeDrawer = (drawer) => {
+      if (!drawer.classList.contains(CONFIG.classes.open)) return;
+      const closeEvent = new CustomEvent("hygular.drawer.close", {
+        detail: { drawer },
+        bubbles: true,
+        cancelable: true,
+      });
+      drawer.dispatchEvent(closeEvent);
+      if (closeEvent.defaultPrevented) return;
+      if (activeDrawer === drawer) activeDrawer = null;
+
+      drawerLock = true;
+      drawer.classList.remove(CONFIG.classes.open);
+      drawer.removeAttribute("aria-modal");
+      drawer.removeAttribute("role");
+      releaseFocusTrap(drawer);
+
+      let transitioned = false;
+      const cleanup = () => {
+        if (transitioned) return;
+        transitioned = true;
+        drawer.removeEventListener("transitionend", handler);
+        transitions.delete(drawer);
+        drawers.delete(drawer);
+        drawerLock = false;
+        if (!drawer.classList.contains("has-no-backdrop")) {
+          scrollLock.unlock();
+        }
+        drawer.dispatchEvent(
+          new CustomEvent("hygular.drawer.closed", {
+            detail: { drawer },
+            bubbles: true,
+          }),
+        );
+      };
+
+      const handler = (e) => {
+        if (
+          e.target !== drawer &&
+          e.target !== drawer.querySelector(CONFIG.selectors.panel)
+        )
+          return;
+        drawer.removeEventListener("transitionend", handler);
+        cleanup();
+      };
+
+      transitions.set(drawer, handler);
+      drawer.addEventListener("transitionend", handler);
+      schedule(cleanup, CONFIG.defaults.transitionDuration + 50);
+    };
+
+    const clickHandler = (evt) => {
+      const trigger = evt.target.closest('[data-hygular-toggle="drawer"]');
+      const dismissBtn = evt.target.closest(CONFIG.selectors.dismissBtn);
+
+      if (trigger) {
+        evt.preventDefault();
+        const selector = trigger.getAttribute(CONFIG.attrs.target);
+        const drawer = selector
+          ? document.querySelector(selector)
+          : trigger.closest(CONFIG.parent);
+        if (!drawer) return;
+        openDrawer(drawer);
+        return;
+      }
+
+      if (dismissBtn) {
+        evt.preventDefault();
+        const drawer = dismissBtn.closest(CONFIG.parent);
+        if (drawer) closeDrawer(drawer);
+        return;
+      }
+
+      if (activeDrawer) {
+        const link = evt.target.closest("a");
+        if (link && activeDrawer.contains(link) && isNavigationalLink(link)) {
+          closeDrawer(activeDrawer);
+        }
+      }
+
+      if (
+        activeDrawer &&
+        activeDrawer.classList.contains(CONFIG.classes.open)
+      ) {
+        const panel = activeDrawer.querySelector(CONFIG.selectors.panel);
+        if (
+          panel &&
+          !panel.contains(evt.target) &&
+          !evt.target.closest('[data-hygular-toggle="drawer"]')
+        ) {
+          closeDrawer(activeDrawer);
+        }
+      }
+    };
+
+    const keyHandler = (evt) => {
+      if ((evt.key === "Escape" || evt.key === "Esc") && activeDrawer) {
+        closeDrawer(activeDrawer);
+      }
+    };
+
+    document.addEventListener("click", clickHandler);
+    document.addEventListener("keydown", keyHandler);
+
+    return () => {
+      document.removeEventListener("click", clickHandler);
+      document.removeEventListener("keydown", keyHandler);
+      disposed = true;
+      timers.forEach(clearTimeout);
+      timers.clear();
+      transitions.forEach((handler, drawer) =>
+        drawer.removeEventListener("transitionend", handler),
+      );
+      transitions.clear();
+      drawers.forEach((drawer) => {
+        drawer.classList.remove(CONFIG.classes.open);
+        drawer.removeAttribute("aria-modal");
+        drawer.removeAttribute("role");
+        releaseFocusTrap(drawer);
+      });
+      drawers.clear();
+      activeDrawer = null;
+      scrollLock.unlock();
+    };
+  }
 }

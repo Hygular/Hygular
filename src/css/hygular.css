@@ -7374,4 +7374,22 @@
   .ease-spring {
     transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+
+  /* Text selection */
+  .select-none {
+    user-select: none;
+  }
+
+  .select-text {
+    user-select: text;
+  }
+
+  .select-all {
+    user-select: all;
+  }
+
+  .select-auto {
+    user-select: auto;
+  }
+
 }

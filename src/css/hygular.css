@@ -4889,6 +4889,43 @@ background: transparent;
     --toast-text: var(--warning-contrast);
   }
 
+   /* Thumbnail images */
+  .thumbnail-image {
+    --thumbnail-size: 3rem;
+    display: inline-block;
+    width: var(--thumbnail-size);
+    height: var(--thumbnail-size);
+    object-fit: cover;
+    object-position: center;
+    flex-shrink: 0;
+    border-radius: 0.375rem;
+  }
+
+  .thumbnail-image.is-xsmall {
+    --thumbnail-size: 2rem;
+    border-radius: 0.25rem;
+  }
+
+  .thumbnail-image.is-medium {
+    --thumbnail-size: 4rem;
+    border-radius: 0.5rem;
+  }
+
+  .thumbnail-image.is-large {
+    --thumbnail-size: 6rem;
+    border-radius: 0.625rem;
+  }
+
+  .thumbnail-image.is-xlarge {
+    --thumbnail-size: 9rem;
+    border-radius: 0.75rem;
+  }
+
+  .thumbnail-image.is-2xlarge {
+    --thumbnail-size: 12.5rem;
+    border-radius: 1rem;
+  }
+
   /* Theme switch */
   .dark-mode-toggler {
     position: relative;

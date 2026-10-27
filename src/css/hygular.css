@@ -1558,6 +1558,27 @@
     border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
   }
 
+  [data-hygular-theme="dark"] .button.is-primary:hover:not(:disabled){
+    background-color: oklch(from var(--primary) calc(l - 0.04) c h);
+    border-color: oklch(from var(--primary) calc(l - 0.04) c h);
+  }
+[data-hygular-theme="dark"] .button.is-success:hover:not(:disabled){
+    background-color: oklch(from var(--success) calc(l - 0.04) c h);
+    border-color: oklch(from var(--success) calc(l - 0.04) c h);
+  }
+[data-hygular-theme="dark"] .button.is-danger:hover:not(:disabled){
+    background-color: oklch(from var(--danger) calc(l - 0.04) c h);
+    border-color: oklch(from var(--danger) calc(l - 0.04) c h);
+  }
+[data-hygular-theme="dark"] .button.is-warning:hover:not(:disabled){
+    background-color: oklch(from var(--warning) calc(l - 0.04) c h);
+    border-color: oklch(from var(--warning) calc(l - 0.04) c h);
+  }
+[data-hygular-theme="dark"] .button.is-info:hover:not(:disabled){
+    background-color: oklch(from var(--info) calc(l - 0.04) c h);
+    border-color: oklch(from var(--info) calc(l - 0.04) c h);
+  }
+
    /* Blockquote */
   blockquote.is-boxed,
   .blockquote {

@@ -660,10 +660,10 @@ export default class Components {
     };
   }
 
-  /**
-   * Bind delegated navbar toggles. Return a function that removes the click
-   * listener.
-   */
+/**
+ * Bind delegated navbar toggles. Return cleanup for click and Escape handlers
+ * and pending menu animations.
+ */
   static navbar() {
     const CONFIG = {
       trigger: '[data-hygular-toggle="navbar"]',

@@ -591,10 +591,10 @@ export default class Popover {
     });
   }
 
-  /**
-   * Request hiding, detach listeners, and clear the instance registration and
-   * references.
-   */
+/**
+ * Remove the popover, detach listeners, restore ARIA attributes, and clear
+ * instance references.
+ */
   dispose() {
     if (this.#isDisposed) return;
     this.#isDisposed = true;

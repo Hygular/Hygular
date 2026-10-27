@@ -49,7 +49,9 @@ const Debug = {
     state.enabled = false;
   },
 
-  // Coerce the supplied value to a boolean.
+  /**
+   * Coerce the supplied value to a boolean.
+   */
   set(value) {
     state.enabled = Boolean(value);
   },
@@ -79,14 +81,18 @@ const Debug = {
   error(...args) {
     emit("error", "error", false, args);
   },
-
-  // Groups messages while debug mode is on.
+  
+  /**
+   * Groups messages while debug mode is on.
+   */
   group(label) {
     if (!state.enabled) return;
     console.group(...format("log"), label);
   },
 
-  // Start a console group when debugging is enabled.
+  /**
+   * End the current console group when debugging is enabled.
+   */
   groupEnd() {
     if (state.enabled) console.groupEnd();
   },

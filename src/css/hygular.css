@@ -817,4 +817,180 @@
 }
 
 @layer utilities {
+     /* Overflow */
+  .overflow-auto {
+    overflow: auto;
+  }
+
+  .overflow-hidden {
+    overflow: hidden;
+  }
+
+  .overflow-clip {
+    overflow: clip;
+  }
+
+  .overflow-visible {
+    overflow: visible;
+  }
+
+  .overflow-scroll {
+    overflow: scroll;
+  }
+
+  /* Horizontal overflow */
+  .overflow-x-auto {
+    overflow-x: auto;
+  }
+
+  .overflow-x-hidden {
+    overflow-x: hidden;
+  }
+
+  .overflow-x-clip {
+    overflow-x: clip;
+  }
+
+  .overflow-x-visible {
+    overflow-x: visible;
+  }
+
+  .overflow-x-scroll {
+    overflow-x: scroll;
+  }
+
+  /* Vertical overflow */
+  .overflow-y-auto {
+    overflow-y: auto;
+  }
+
+  .overflow-y-hidden {
+    overflow-y: hidden;
+  }
+
+  .overflow-y-clip {
+    overflow-y: clip;
+  }
+
+  .overflow-y-visible {
+    overflow-y: visible;
+  }
+
+  .overflow-y-scroll {
+    overflow-y: scroll;
+  }
+
+  @media (min-width: var(--breakpoint-md)) {
+    .md\:overflow-auto {
+      overflow: auto;
+    }
+
+    .md\:overflow-hidden {
+      overflow: hidden;
+    }
+
+    .md\:overflow-visible {
+      overflow: visible;
+    }
+
+    .md\:overflow-x-auto {
+      overflow-x: auto;
+    }
+
+    .md\:overflow-x-hidden {
+      overflow-x: hidden;
+    }
+
+    .md\:overflow-x-visible {
+      overflow-x: visible;
+    }
+
+    .md\:overflow-y-auto {
+      overflow-y: auto;
+    }
+
+    .md\:overflow-y-hidden {
+      overflow-y: hidden;
+    }
+
+    .md\:overflow-y-visible {
+      overflow-y: visible;
+    }
+  }
+
+  @media (min-width: var(--breakpoint-lg)) {
+    .lg\:overflow-auto {
+      overflow: auto;
+    }
+
+    .lg\:overflow-hidden {
+      overflow: hidden;
+    }
+
+    .lg\:overflow-visible {
+      overflow: visible;
+    }
+
+    .lg\:overflow-x-auto {
+      overflow-x: auto;
+    }
+
+    .lg\:overflow-x-hidden {
+      overflow-x: hidden;
+    }
+
+    .lg\:overflow-x-visible {
+      overflow-x: visible;
+    }
+
+    .lg\:overflow-y-auto {
+      overflow-y: auto;
+    }
+
+    .lg\:overflow-y-hidden {
+      overflow-y: hidden;
+    }
+
+    .lg\:overflow-y-visible {
+      overflow-y: visible;
+    }
+  }
+
+  /* Overscroll */
+  .overscroll-auto {
+    overscroll-behavior: auto;
+  }
+
+  .overscroll-contain {
+    overscroll-behavior: contain;
+  }
+
+  .overscroll-none {
+    overscroll-behavior: none;
+  }
+
+  .overscroll-x-auto {
+    overscroll-behavior-x: auto;
+  }
+
+  .overscroll-x-contain {
+    overscroll-behavior-x: contain;
+  }
+
+  .overscroll-x-none {
+    overscroll-behavior-x: none;
+  }
+
+  .overscroll-y-auto {
+    overscroll-behavior-y: auto;
+  }
+
+  .overscroll-y-contain {
+    overscroll-behavior-y: contain;
+  }
+
+  .overscroll-y-none {
+    overscroll-behavior-y: none;
+  }
+
 }

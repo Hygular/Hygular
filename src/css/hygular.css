@@ -993,4 +993,51 @@
     overscroll-behavior-y: none;
   }
 
+   /* Visibility */
+  .is-visible {
+    visibility: visible;
+  }
+  .is-invisible {
+    visibility: hidden;
+  }
+  .is-collapse {
+    visibility: collapse;
+  }
+
+  @media (min-width: var(--breakpoint-sm)) {
+    .sm\:is-visible {
+      visibility: visible;
+    }
+    .sm\:is-invisible {
+      visibility: hidden;
+    }
+  }
+
+  @media (min-width: var(--breakpoint-md)) {
+    .md\:is-visible {
+      visibility: visible;
+    }
+    .md\:is-invisible {
+      visibility: hidden;
+    }
+  }
+
+  @media (min-width: var(--breakpoint-lg)) {
+    .lg\:is-visible {
+      visibility: visible;
+    }
+    .lg\:is-invisible {
+      visibility: hidden;
+    }
+  }
+
+  @media (min-width: var(--breakpoint-xl)) {
+    .xl\:is-visible {
+      visibility: visible;
+    }
+    .xl\:is-invisible {
+      visibility: hidden;
+    }
+  }
+
 }

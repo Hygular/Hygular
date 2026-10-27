@@ -9,7 +9,7 @@ import { useEffect, useRef } from "react";
 import Popover from "../js/components/Popover.js";
 
 /**
- * Provides helpers for creating popover components.
+ * Return a target ref and manage its popover instance on mount and unmount.
  */
 export function usePopover(options = {}) {
   const ref = useRef(null);

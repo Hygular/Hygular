@@ -9,7 +9,7 @@ import { useCallback } from "react";
 import Modal from "../js/components/Modal.js";
 
 /**
- * Provides helpers for creating modal components.
+ * Return stable helpers for opening dialogs directly or through the queue.
  */
 export function useModal() {
   const alert = useCallback((options = {}) => {

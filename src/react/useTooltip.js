@@ -9,7 +9,7 @@ import { useEffect, useRef } from "react";
 import Tooltip from "../js/components/Tooltip.js";
 
 /**
- * Provides helpers for creating tooltip components.
+ * Return a target ref and manage its tooltip instance on mount and unmount.
  */
 export function useTooltip(options = {}) {
   const ref = useRef(null);

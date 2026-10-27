@@ -1,7 +1,10 @@
 {
-  "name": "hygular",
+  "name": "@hygular/core",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "1.0.0-beta.1",
-  "description": "Modern front-end framework. Lightweight, powerful, no chaos.",
+  "description": "Frontend UI engine with semantic utility CSS, reusable components, and a lightweight JavaScript runtime.",
   "author": "Eyruz Badalzada",
   "license": "MIT",
   "homepage": "https://hygular.com",
@@ -10,18 +13,17 @@
     "url": "git+https://github.com/Hygular/Hygular.git"
   },
   "keywords": [
+    "hygular",
     "css",
     "css-framework",
     "utility-css",
-    "ui",
     "ui-components",
-    "ui-library",
     "frontend",
-    "frontend-framework",
-    "components",
+    "design-tokens",
+    "theming",
     "responsive",
-    "bootstrap-alternative",
-    "tailwind-alternative"
+    "vanilla-js",
+    "react"
   ],
   "type": "module",
   "types": "./index.d.ts",

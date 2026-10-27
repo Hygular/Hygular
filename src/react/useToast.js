@@ -9,7 +9,7 @@ import { useCallback } from "react";
 import Toast from "../js/components/Toast.js";
 
 /**
- * Provides helpers for creating toast components.
+ * Return stable helpers for showing toasts with optional status presets.
  */
 export function useToast() {
   const success = useCallback((message, options = {}) => {

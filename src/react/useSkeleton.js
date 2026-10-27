@@ -9,7 +9,7 @@ import { useEffect, useRef, useCallback } from "react";
 import Skeleton from "../js/components/Skeleton.js";
 
 /**
- * Provides helpers for creating skeleton components.
+ * Return a target ref and helpers for loading, error, and async task states.
  */
 export function useSkeleton() {
   const ref = useRef(null);

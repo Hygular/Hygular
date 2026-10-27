@@ -9,7 +9,7 @@ import { useEffect, useRef } from "react";
 import Select from "../js/components/Select.js";
 
 /**
- * Provides helpers for creating select components.
+ * Initialize a select on mount, forward change events, and dispose it on unmount.
  */
 export function useSelect(target, options = {}) {
   const instanceRef = useRef(null);

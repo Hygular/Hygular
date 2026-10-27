@@ -854,4 +854,250 @@ export default class Components {
       document.removeEventListener("keydown", keyHandler);
     };
   }
+
+  /**
+   * Initialize tab state, keyboard navigation, and the optional indicator. Return
+   * an object with cleanup.
+   */
+  static tabview(tabContainer) {
+    // Skip DOM setup outside the browser.
+    if (typeof document === "undefined" || typeof window === "undefined") {
+      return;
+    }
+
+    if (!tabContainer) return;
+
+    const CONFIG = {
+      attrs: {
+        tab: "data-tab",
+        indicator: "data-tab-indicator",
+      },
+      classes: {
+        active: "is-active",
+        open: "is-open",
+        underline: "tab-indicator",
+        instant: "is-instant",
+      },
+    };
+
+    const tabs = Array.from(
+      tabContainer.querySelectorAll(`[${CONFIG.attrs.tab}]`),
+    );
+    if (!tabs.length) return;
+
+    const indicator = tabContainer.getAttribute(CONFIG.attrs.indicator);
+    const hasUiIndicator = indicator === "true" || indicator === "";
+
+    let underline = tabContainer.querySelector(`.${CONFIG.classes.underline}`);
+    const weCreatedUnderline = hasUiIndicator && !underline;
+
+    if (hasUiIndicator) {
+      if (getComputedStyle(tabContainer).position === "static") {
+        tabContainer.style.position = "relative";
+      }
+      if (!underline) {
+        underline = document.createElement("div");
+        underline.className = CONFIG.classes.underline;
+        tabContainer.appendChild(underline);
+      }
+      underline.style.display = "";
+    } else if (underline) {
+      underline.style.display = "none";
+    }
+
+    const panelMap = new Map();
+    tabs.forEach((tab) => {
+      const sel = tab.getAttribute(CONFIG.attrs.tab);
+      const panel = sel ? document.querySelector(sel) : null;
+      if (panel) panelMap.set(sel, panel);
+
+      if (!tab.id) tab.id = `tab-${Math.random().toString(36).slice(2, 9)}`;
+      tab.setAttribute("role", "tab");
+
+      if (panel) {
+        if (!panel.id)
+          panel.id = `panel-${Math.random().toString(36).slice(2, 9)}`;
+        tab.setAttribute("aria-controls", panel.id);
+        panel.setAttribute("role", "tabpanel");
+        panel.setAttribute("aria-labelledby", tab.id);
+      }
+    });
+
+    tabContainer.setAttribute("role", "tablist");
+
+    const indicatorSize =
+      parseFloat(
+        getComputedStyle(tabContainer).getPropertyValue("--tab-indicator-size"),
+      ) || 3;
+
+    let pendingRaf = null;
+    let disposed = false;
+
+    const measure = (el) => {
+      const containerRect = tabContainer.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      return {
+        left: elRect.left - containerRect.left + tabContainer.scrollLeft,
+        top: elRect.top - containerRect.top + tabContainer.scrollTop,
+        width: elRect.width,
+        height: elRect.height,
+      };
+    };
+
+    const readLayout = () => {
+      const style = getComputedStyle(tabContainer);
+      const flexDir = style.flexDirection;
+      return {
+        vertical: flexDir === "column" || flexDir === "column-reverse",
+        rtl: style.direction === "rtl",
+      };
+    };
+
+    function updateIndicator(instant = false) {
+      if (!hasUiIndicator || !underline) return;
+
+      const activeTab = tabContainer.querySelector(`.${CONFIG.classes.active}`);
+      if (!activeTab) return;
+
+      if (activeTab.offsetWidth === 0 && activeTab.offsetHeight === 0) return;
+
+      if (pendingRaf !== null) cancelAnimationFrame(pendingRaf);
+
+      pendingRaf = requestAnimationFrame(() => {
+        pendingRaf = null;
+
+        const { left, top, width, height } = measure(activeTab);
+        const { vertical, rtl } = readLayout();
+
+        let x, y, w, h;
+
+        if (vertical) {
+          // Place a vertical indicator at the inline-start edge.
+          w = Math.round(indicatorSize);
+          h = Math.round(height);
+          y = Math.round(top);
+          x = rtl ? Math.round(left + width - indicatorSize) : Math.round(left);
+        } else {
+          // Place a horizontal indicator along the bottom edge.
+          w = Math.round(width);
+          h = Math.round(indicatorSize);
+          x = Math.round(left);
+          y = Math.round(top + height - indicatorSize);
+        }
+
+        if (instant) underline.classList.add(CONFIG.classes.instant);
+
+        underline.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        underline.style.width = `${w}px`;
+        underline.style.height = `${h}px`;
+
+        if (instant) {
+          void underline.offsetWidth;
+          requestAnimationFrame(() =>
+            underline.classList.remove(CONFIG.classes.instant),
+          );
+        }
+      });
+    }
+
+    // Update tab state, panel visibility, and the indicator together.
+    function setActiveTab(tab, { focus = false } = {}) {
+      tabs.forEach((t) => {
+        const isActive = t === tab;
+        t.classList.toggle(CONFIG.classes.active, isActive);
+        t.setAttribute("aria-selected", String(isActive));
+        t.tabIndex = isActive ? 0 : -1;
+      });
+
+      panelMap.forEach((panel) => panel.classList.remove(CONFIG.classes.open));
+
+      const sel = tab.getAttribute(CONFIG.attrs.tab);
+      const panel = panelMap.get(sel);
+      if (panel) panel.classList.add(CONFIG.classes.open);
+
+      updateIndicator();
+      if (focus) tab.focus();
+    }
+
+    const initialActive =
+      tabContainer.querySelector(`.${CONFIG.classes.active}`) || tabs[0];
+    setActiveTab(initialActive);
+
+    if (underline) updateIndicator(true);
+
+    const clickHandler = (evt) => {
+      const tab = evt.target.closest(`[${CONFIG.attrs.tab}]`);
+      if (!tab || !tabContainer.contains(tab)) return;
+      if (tab.classList.contains(CONFIG.classes.active)) return;
+
+      evt.preventDefault();
+      setActiveTab(tab);
+    };
+
+    // Move focus and activate tabs with Left, Right, Home, and End.
+    const keydownHandler = (evt) => {
+      const currentTab = evt.target.closest(`[${CONFIG.attrs.tab}]`);
+      if (!currentTab || !tabContainer.contains(currentTab)) return;
+
+      const currentIndex = tabs.indexOf(currentTab);
+      if (currentIndex === -1) return;
+
+      let nextIndex = null;
+      switch (evt.key) {
+        case "ArrowRight":
+          nextIndex = (currentIndex + 1) % tabs.length;
+          break;
+        case "ArrowLeft":
+          nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+          break;
+        case "Home":
+          nextIndex = 0;
+          break;
+        case "End":
+          nextIndex = tabs.length - 1;
+          break;
+        default:
+          return;
+      }
+
+      evt.preventDefault();
+      setActiveTab(tabs[nextIndex], { focus: true });
+    };
+
+    tabContainer.addEventListener("click", clickHandler);
+    tabContainer.addEventListener("keydown", keydownHandler);
+
+    // Update the indicator when the tab container or individual tabs resize.
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => updateIndicator())
+        : null;
+    if (resizeObserver) {
+      resizeObserver.observe(tabContainer);
+      tabs.forEach((t) => resizeObserver.observe(t));
+    }
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        if (!disposed) updateIndicator();
+      });
+    }
+
+    return {
+      dispose: () => {
+        disposed = true;
+        if (pendingRaf !== null) cancelAnimationFrame(pendingRaf);
+        tabContainer.removeEventListener("click", clickHandler);
+        tabContainer.removeEventListener("keydown", keydownHandler);
+        if (resizeObserver) resizeObserver.disconnect();
+        if (
+          weCreatedUnderline &&
+          underline &&
+          underline.parentNode === tabContainer
+        ) {
+          underline.remove();
+        }
+      },
+    };
+  }
 }

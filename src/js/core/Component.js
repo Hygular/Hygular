@@ -8,6 +8,7 @@
 import DomUtils from "../utils/DomUtils.js";
 import ScrollLock from "../utils/ScrollLock.js";
 export default class Components {
+  static #accordionId = 0;
   /**
    * Restore persisted alert dismissals and bind the dismiss handler. Return its
    * cleanup function.
@@ -99,5 +100,162 @@ export default class Components {
 
     document.addEventListener("click", clickHandler);
     return () => document.removeEventListener("click", clickHandler);
+  }
+
+  /**
+   * Bind accordion toggles and apply the initial open state. Return listener
+   * cleanup.
+   */
+  static accordion() {
+    const CONFIG = {
+      selector: '[data-hygular="accordion"]',
+      classes: {
+        open: "is-open",
+        disabled: "is-disabled",
+      },
+
+      selectors: {
+        toggler: ".accordion-toggler",
+        content: ".accordion-content",
+      },
+
+      attrs: {
+        expanded: "aria-expanded",
+      },
+    };
+
+    const clickHandler = async (evt) => {
+      const toggler = evt.target.closest(CONFIG.selectors.toggler);
+      if (
+        !toggler ||
+        toggler.disabled ||
+        toggler.getAttribute("aria-disabled") === "true" ||
+        toggler.classList.contains(CONFIG.classes.disabled)
+      )
+        return;
+      const root = toggler.closest(CONFIG.selector);
+      if (!root) return;
+
+      if (root.accordionLock) return;
+      root.accordionLock = true;
+
+      const allowMultiple = root.getAttribute("data-allow-multiple") === "true";
+      const isOpen = toggler.classList.contains(CONFIG.classes.open);
+
+      if (isOpen) {
+        await accordionClose(toggler);
+      } else {
+        const openedSuccessfully = await accordionOpen(toggler);
+        if (openedSuccessfully && !allowMultiple) {
+          const others = [
+            ...root.querySelectorAll(CONFIG.selectors.toggler),
+          ].filter(
+            (btn) =>
+              btn !== toggler && btn.classList.contains(CONFIG.classes.open),
+          );
+          await Promise.all(others.map((btn) => accordionClose(btn)));
+        }
+      }
+
+      root.accordionLock = false;
+    };
+
+    const syncState = (button, content, open) => {
+      button.setAttribute(CONFIG.attrs.expanded, String(open));
+      if (!content.id) {
+        let id;
+        do {
+          id = `hygular-accordion-${++Components.#accordionId}`;
+        } while (document.getElementById(id));
+        content.id = id;
+      }
+      button.setAttribute("aria-controls", content.id);
+    };
+
+    document.querySelectorAll(CONFIG.selector).forEach((root) => {
+      root.querySelectorAll(CONFIG.selectors.toggler).forEach((button) => {
+        const content = button.parentElement.querySelector(
+          CONFIG.selectors.content,
+        );
+        if (content) {
+          syncState(
+            button,
+            content,
+            button.classList.contains(CONFIG.classes.open),
+          );
+        }
+      });
+      if (root.getAttribute("data-open-first") !== "true") return;
+      const first = root.querySelector(CONFIG.selectors.toggler);
+      if (!first) return;
+
+      first.classList.add(CONFIG.classes.open);
+
+      const content = first.parentElement.querySelector(
+        CONFIG.selectors.content,
+      );
+      if (content) {
+        content.style.display = "block";
+        syncState(first, content, true);
+      }
+    });
+
+    document.addEventListener("click", clickHandler);
+
+    return () => document.removeEventListener("click", clickHandler);
+
+    async function accordionClose(btn) {
+      const item = btn.parentElement;
+      const content = item.querySelector(CONFIG.selectors.content);
+      if (!content) return false;
+
+      const closeEvent = new CustomEvent("hygular.accordion.close", {
+        detail: { trigger: btn, content, item },
+        bubbles: true,
+        cancelable: true,
+      });
+      item.dispatchEvent(closeEvent);
+      if (closeEvent.defaultPrevented) return false;
+
+      btn.classList.remove(CONFIG.classes.open);
+      syncState(btn, content, false);
+      await DomUtils.slideUp(content, 200);
+
+      item.dispatchEvent(
+        new CustomEvent("hygular.accordion.closed", {
+          detail: { trigger: btn, content, item },
+          bubbles: true,
+        }),
+      );
+
+      return true;
+    }
+
+    async function accordionOpen(btn) {
+      const item = btn.parentElement;
+      const content = item.querySelector(CONFIG.selectors.content);
+      if (!content) return false;
+
+      const openEvent = new CustomEvent("hygular.accordion.open", {
+        detail: { trigger: btn, content, item },
+        bubbles: true,
+        cancelable: true,
+      });
+      item.dispatchEvent(openEvent);
+      if (openEvent.defaultPrevented) return false;
+
+      btn.classList.add(CONFIG.classes.open);
+      syncState(btn, content, true);
+      await DomUtils.slideDown(content, 200);
+
+      item.dispatchEvent(
+        new CustomEvent("hygular.accordion.opened", {
+          detail: { trigger: btn, content, item },
+          bubbles: true,
+        }),
+      );
+
+      return true;
+    }
   }
 }

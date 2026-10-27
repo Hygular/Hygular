@@ -1534,4 +1534,266 @@
   .cursor-wait {
     cursor: wait;
   }
+
+   /* Transforms */
+  .translate-center {
+    --translate-x: -50%;
+    --translate-y: -50%;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .translate-x-center {
+    --translate-x: -50%;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .translate-y-center {
+    --translate-y: -50%;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  /* Scale */
+  .scale-0 {
+    scale: 0;
+  }
+
+  .scale-75 {
+    scale: 0.75;
+  }
+
+  .scale-90 {
+    scale: 0.9;
+  }
+
+  .scale-95 {
+    scale: 0.95;
+  }
+
+  .scale-100 {
+    scale: 1;
+  }
+
+  .scale-105 {
+    scale: 1.05;
+  }
+
+  .scale-110 {
+    scale: 1.1;
+  }
+
+  .scale-125 {
+    scale: 1.25;
+  }
+
+  /* Vertical translation */
+  .translate-y-1 {
+    --translate-y: -0.25rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .translate-y-2 {
+    --translate-y: -0.5rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .translate-y-3 {
+    --translate-y: -0.75rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .translate-y-4 {
+    --translate-y: -1rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .translate-y-8 {
+    --translate-y: -2rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .-translate-y-1 {
+    --translate-y: 0.25rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .-translate-y-2 {
+    --translate-y: 0.5rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .-translate-y-3 {
+    --translate-y: 0.75rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .-translate-y-4 {
+    --translate-y: 1rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .-translate-y-8 {
+    --translate-y: 2rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  /* Horizontal translation */
+  .translate-x-1 {
+    --translate-x: 0.25rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .translate-x-2 {
+    --translate-x: 0.5rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .translate-x-3 {
+    --translate-x: 0.75rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .translate-x-4 {
+    --translate-x: 1rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .translate-x-8 {
+    --translate-x: 2rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .-translate-x-1 {
+    --translate-x: -0.25rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .-translate-x-2 {
+    --translate-x: -0.5rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .-translate-x-3 {
+    --translate-x: -0.75rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .-translate-x-4 {
+    --translate-x: -1rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  .-translate-x-8 {
+    --translate-x: -2rem;
+    translate: var(--translate-x) var(--translate-y);
+  }
+
+  /* Small rotations */
+  .rotate-1 {
+    rotate: 1deg;
+  }
+
+  .rotate-2 {
+    rotate: 2deg;
+  }
+
+  .rotate-3 {
+    rotate: 3deg;
+  }
+
+  .rotate-12 {
+    rotate: 12deg;
+  }
+
+  .-rotate-1 {
+    rotate: -1deg;
+  }
+
+  .-rotate-2 {
+    rotate: -2deg;
+  }
+
+  .-rotate-3 {
+    rotate: -3deg;
+  }
+
+  .-rotate-12 {
+    rotate: -12deg;
+  }
+
+  /* Rotations */
+  .rotate-45 {
+    rotate: 45deg;
+  }
+
+  .rotate-90 {
+    rotate: 90deg;
+  }
+
+  .rotate-180 {
+    rotate: 180deg;
+  }
+
+  .rotate-270 {
+    rotate: 270deg;
+  }
+
+  .-rotate-45 {
+    rotate: -45deg;
+  }
+
+  .-rotate-90 {
+    rotate: -90deg;
+  }
+
+  /* Transform origin */
+  .origin-center {
+    transform-origin: center;
+  }
+
+  .origin-top {
+    transform-origin: top;
+  }
+
+  .origin-top-right {
+    transform-origin: top right;
+  }
+
+  .origin-right {
+    transform-origin: right;
+  }
+
+  .origin-bottom-right {
+    transform-origin: bottom right;
+  }
+
+  .origin-bottom {
+    transform-origin: bottom;
+  }
+
+  .origin-bottom-left {
+    transform-origin: bottom left;
+  }
+
+  .origin-left {
+    transform-origin: left;
+  }
+
+  .origin-top-left {
+    transform-origin: top left;
+  }
+
+ /* Rendering hints */
+  .will-change-auto {
+    will-change: auto;
+  }
+  .will-change-scroll {
+    will-change: scroll-position;
+  }
+  .will-change-transform {
+    will-change: transform;
+  }
+  .will-change-opacity {
+    will-change: opacity;
+  }
+
 }

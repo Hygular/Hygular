@@ -1607,6 +1607,78 @@
     content: "\2014 \00A0";
   }
 
+  /* Breadcrumbs */
+  .breadcrumb {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    padding: 0;
+    margin-bottom: 1rem;
+    list-style: none;
+  }
+
+  .breadcrumb-item {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  .breadcrumb-item > .breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    color: var(--muted);
+    border-radius: var(--radius-2);
+    font-size: 0.875rem;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .breadcrumb-item > .breadcrumb-link:hover {
+    background-color: oklch(from currentColor l c h / 0.1);
+  }
+
+  .breadcrumb-item.is-active,
+  .breadcrumb-item:has([aria-current="page"]) {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .breadcrumb-item.is-active .breadcrumb-link,
+  .breadcrumb-item [aria-current="page"] {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--body-text);
+    pointer-events: none;
+  }
+
+  .breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    padding: 0 0.5rem;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .breadcrumb.is-arrow .breadcrumb-item + .breadcrumb-item::before {
+    content: "\203A";
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .breadcrumb.is-bullet .breadcrumb-item + .breadcrumb-item::before {
+    content: "•";
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+  }
+
+
   /* Collapse */
   .collapse {
     display: none;

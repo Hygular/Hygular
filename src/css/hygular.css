@@ -9442,4 +9442,46 @@
     opacity: 1;
   }
 
+   /* Object fit */
+  .object-fit-contain {
+    object-fit: contain;
+  }
+
+  .object-fit-cover {
+    object-fit: cover;
+  }
+
+  .object-fit-fill {
+    object-fit: fill;
+  }
+
+  .object-fit-scale-down {
+    object-fit: scale-down;
+  }
+
+  .object-fit-none {
+    object-fit: none;
+  }
+
+  /* Object position */
+  .object-position-center {
+    object-position: center;
+  }
+
+  .object-position-top {
+    object-position: top;
+  }
+
+  .object-position-bottom {
+    object-position: bottom;
+  }
+
+  .object-position-left {
+    object-position: left;
+  }
+
+  .object-position-right {
+    object-position: right;
+  }
+
 }

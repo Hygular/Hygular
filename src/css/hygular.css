@@ -1808,6 +1808,226 @@
     display: block;
   }
 
+   
+  /* Lists */
+  .list {
+    padding-inline-start: 1.5rem;
+    margin-bottom: 1rem;
+    color: inherit;
+  }
+
+  .list > li {
+    margin-bottom: 0.25rem;
+  }
+
+  .list.is-unstyled {
+    list-style: none;
+    padding-inline-start: 0;
+    margin-inline-start: 0;
+  }
+
+  .list.is-inline {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    padding-inline-start: 0;
+  }
+
+  .list.is-inline > li {
+    margin-bottom: 0;
+  }
+
+  .list.is-square {
+    list-style-type: square;
+  }
+
+  .list.is-circle {
+    list-style-type: circle;
+  }
+
+  .list.is-disc {
+    list-style-type: disc;
+  }
+
+  .list.is-decimal {
+    list-style-type: decimal;
+  }
+
+  .list.is-leading-zero {
+    list-style-type: decimal-leading-zero;
+  }
+
+  .list.is-lower-alpha {
+    list-style-type: lower-alpha;
+  }
+
+  .list.is-upper-alpha {
+    list-style-type: upper-alpha;
+  }
+
+  .list.is-lower-roman {
+    list-style-type: lower-roman;
+  }
+
+  .list.is-upper-roman {
+    list-style-type: upper-roman;
+  }
+
+  /* List views */
+  .listview {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 400;
+    background-color: var(--surface);
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    list-style: none;
+  }
+
+  .listview > .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    color: var(--body-text);
+    background-color: var(--surface);
+    border: 1px solid transparent;
+    border-bottom: 1px solid oklch(50% 0 0 / 0.12);
+    text-decoration: none;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  .listview > .list-item:last-child {
+    border-bottom: none;
+  }
+
+  .listview > .list-item .list-start {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-inline-end: 1rem;
+    min-width: 1.5rem;
+    color: var(--muted);
+  }
+
+  .list-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    display: inline-block;
+  }
+
+  .listview > .list-item .list-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .list-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: inherit;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .list-subtitle {
+    font-size: 0.875rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .listview > .list-item .list-end {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    margin-inline-start: 1rem;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .listview.is-hoverable > .list-item:hover:not(.is-disabled):not(.is-active) {
+    background-color: oklch(from var(--body-text) l c h / 0.05);
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  .listview.is-striped .list-item:nth-child(even) {
+    background-color: oklch(50% 0 0 / 0.04);
+  }
+
+  .listview > .list-item.is-active {
+    background-color: var(--primary);
+    color: var(--primary-contrast);
+    border-color: transparent;
+  }
+
+  .listview.is-hoverable > .list-item.is-active:hover {
+    background-color: oklch(from var(--primary) calc(l - 0.05) c h);
+    cursor: pointer;
+  }
+
+  .listview > .list-item.is-active .list-subtitle,
+  .listview > .list-item.is-active .list-start,
+  .listview > .list-item.is-active .list-end {
+    color: var(--primary-contrast);
+  }
+
+  .listview > .list-item.is-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+    background-color: transparent;
+  }
+
+  .listview.is-bordered {
+    border: 1px solid oklch(50% 0 0 / 0.12);
+  }
+
+  .listview.is-borderless,
+  .listview.is-borderless > .list-item {
+    border: none;
+  }
+
+  .listview.is-numbered {
+    counter-reset: list-section;
+  }
+
+  .listview.is-numbered .list-item::before {
+    counter-increment: list-section;
+    content: counter(list-section) ". ";
+    margin-inline-end: 0.75rem;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .listview > .list-item.is-medium {
+    padding: 1.125rem 1.25rem;
+  }
+
+  .listview > .list-item.is-large {
+    padding: 1.375rem 1.5rem;
+  }
+
 }
 
 @layer utilities {

@@ -1,17 +1,19 @@
 # Changelog
 
-Notable changes to Hygular are recorded here. Entries describe changes that affect users, contributors, or package compatibility.
+Notable changes to Hygular are recorded here.
 
-## [Unreleased]
+## [1.0.0-beta.1] - 2026-10-29
 
-Initial public beta, targeting `1.0.0-beta.1`.
+Initial public beta, published as `@hygular/core`.
 
 ### Added
 
-- Semantic utility CSS and reusable component styles, organized into `theme`, `base`, `components`, and `utilities` layers.
-- Theme tokens for colors, spacing, typography, and other interface styles.
-- Responsive styles with named breakpoints resolved during the stylesheet build.
-- A dependency-free vanilla JavaScript runtime with declarative data attributes and programmatic component APIs.
-- An optional React integration, available through `hygular/react`.
-- TypeScript declarations for the core API and React integration.
-- ES module and UMD JavaScript bundles, with source maps.
+- Semantic utility CSS and component styles organized into `theme`, `base`, `components`, and `utilities` cascade layers.
+- Design tokens, light and dark themes, and responsive utilities.
+- A dependency-free JavaScript runtime with declarative data attributes and programmatic component APIs.
+- Optional React hooks through `@hygular/core/react`.
+- TypeScript declarations for the core API and React hooks.
+- ES module and UMD JavaScript bundles with source maps.
+- Minified CSS for direct use and an unminified stylesheet for the separate CSS compiler.
+
+This is a prerelease. APIs may change before the first stable release.

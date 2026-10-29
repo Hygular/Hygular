@@ -5,8 +5,8 @@ import {
   Toast,
   type HygularAttributes,
   type PopoverOptions,
-} from "hygular";
-import { useRange, useSelect, usePopover } from "hygular/react";
+} from "@hygular/core";
+import { useRange, useSelect, usePopover } from "@hygular/core/react";
 const attributes: HygularAttributes = {
   "data-hygular": "range",
   "data-tab": "#panel",
@@ -27,7 +27,7 @@ const obsolete: HygularAttributes = { "data-hygular-tab": "#panel" };
 void attributes;
 void obsolete;
 
-import { Skeleton, LazyImage } from "hygular";
+import { Skeleton, LazyImage } from "@hygular/core";
 const stopSkeleton = Skeleton.mount();
 const stopImages = LazyImage.observe();
 stopSkeleton();

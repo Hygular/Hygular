@@ -1,5 +1,5 @@
-import { Hygular, Modal, Range, type HygularConfig } from "hygular";
-import { useRange, useSwiper, useModal } from "hygular/react";
+import { Hygular, Modal, Range, type HygularConfig } from "@hygular/core";
+import { useRange, useSwiper, useModal } from "@hygular/core/react";
 
 const config = { theme: { primary: "#2563eb" } } satisfies HygularConfig;
 const runtime = new Hygular(config);

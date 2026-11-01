@@ -5,6 +5,8 @@
  * https://hygular.com
  */
 
+import DelegateRegistry from "../utils/DelegateRegistry.js";
+
 export default class Form {
   /**
    * Built-in validators. Each returns true on success or an error message.
@@ -147,7 +149,10 @@ export default class Form {
    * detaches the listeners.
    */
   static init() {
-    if (typeof document === "undefined") return () => {};
+    return DelegateRegistry.subscribe("form", Form.#bind);
+  }
+
+  static #bind(document) {
     const CONFIG = {
       selector: '[data-hygular="form"]',
 
@@ -320,16 +325,30 @@ export default class Form {
 
     // Track touched fields so input validation starts after the first blur or submit.
     const touchedFields = new WeakSet();
-    const submittingForms = new WeakSet();
-    const requests = new Set();
+    const requests = new Map();
     let disposed = false;
+
+    const releaseRequest = (form, request, abort = false) => {
+      if (requests.get(form) !== request) return;
+      requests.delete(form);
+      clearTimeout(request.timeoutId);
+      const button = request.submitBtn;
+      if (button) {
+        button.classList.toggle(CONFIG.classes.loading, request.wasLoading);
+        button.disabled = request.wasDisabled;
+      }
+      if (!requests.size) removalObserver.disconnect();
+      if (abort) request.controller.abort();
+    };
+    const removalObserver = new document.defaultView.MutationObserver(() => {
+      requests.forEach((request, form) => {
+        if (!document.contains(form)) releaseRequest(form, request, true);
+      });
+    });
 
     // AJAX submission
     const handleAjaxSubmit = async (form, submitBtn) => {
-      if (disposed || submittingForms.has(form)) return;
-      submittingForms.add(form);
-      submitBtn?.classList.add(CONFIG.classes.loading);
-      if (submitBtn) submitBtn.disabled = true;
+      if (disposed || requests.has(form) || !document.contains(form)) return;
 
       const method = (form.getAttribute("method") || "POST").toUpperCase();
 
@@ -353,17 +372,33 @@ export default class Form {
         CONFIG.defaults.ajaxTimeout;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-      const request = { controller, timeoutId, submitBtn };
-      requests.add(request);
-
-      form.dispatchEvent(
-        new CustomEvent("hygular.form.start", { detail: { form } }),
-      );
+      const request = {
+        controller,
+        timeoutId,
+        submitBtn,
+        wasDisabled: submitBtn?.disabled ?? false,
+        wasLoading:
+          submitBtn?.classList.contains(CONFIG.classes.loading) ?? false,
+      };
+      requests.set(form, request);
+      submitBtn?.classList.add(CONFIG.classes.loading);
+      if (submitBtn) submitBtn.disabled = true;
+      removalObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
+      const isCurrent = () =>
+        !disposed && requests.get(form) === request && document.contains(form);
 
       try {
-        if (disposed) return;
-        const formData = new FormData(form);
-        const url = new URL(form.action || window.location.href);
+        const startEvent = new CustomEvent("hygular.form.start", {
+          detail: { form },
+          cancelable: true,
+        });
+        form.dispatchEvent(startEvent);
+        if (startEvent.defaultPrevented || !isCurrent()) return;
+        const formData = new document.defaultView.FormData(form);
+        const url = new URL(form.action || document.defaultView.location.href);
         const hasBody = method !== "GET" && method !== "HEAD";
         if (!hasBody) {
           for (const [name, value] of formData)
@@ -384,11 +419,21 @@ export default class Form {
         });
 
         const data = await response.json().catch(() => null);
-        if (disposed) return;
+        if (!isCurrent()) return;
+        if (controller.signal.aborted) {
+          throw new document.defaultView.DOMException(
+            "Request timed out",
+            "AbortError",
+          );
+        }
 
         if (response.ok) {
           clearServerFeedback(form);
           form.reset();
+          if (!isCurrent()) return;
+          form
+            .querySelectorAll(".group.floating-label select")
+            .forEach(updateSelectLabel);
           form.classList.remove(CONFIG.classes.validated);
           // Treat fields as untouched after a successful reset.
           form.querySelectorAll("input, select, textarea").forEach((f) => {
@@ -409,7 +454,7 @@ export default class Form {
           );
         }
       } catch (error) {
-        if (disposed) return;
+        if (!isCurrent()) return;
         const aborted = error.name === "AbortError";
         console.error(
           aborted
@@ -423,16 +468,13 @@ export default class Form {
           }),
         );
       } finally {
-        clearTimeout(timeoutId);
-        requests.delete(request);
-        submittingForms.delete(form);
-        submitBtn?.classList.remove(CONFIG.classes.loading);
-        if (submitBtn) submitBtn.disabled = false;
+        releaseRequest(form, request);
       }
     };
 
     // Delegated event handlers
     const submitHandler = (evt) => {
+      if (disposed) return;
       const form = evt.target.closest(CONFIG.selector);
       if (!form) return;
 
@@ -452,7 +494,7 @@ export default class Form {
         return;
       }
 
-      if (form.getAttribute("data-ajax") === "true") {
+      if (!evt.defaultPrevented && form.getAttribute("data-ajax") === "true") {
         evt.preventDefault();
         handleAjaxSubmit(form, evt.submitter);
       }
@@ -525,33 +567,29 @@ export default class Form {
       validateField(input);
     };
 
-    // Initial form markup
+    const updateSelectLabel = (select) => {
+      let label = select.nextElementSibling;
+      if (!label?.classList.contains("select-label")) {
+        label = document.createElement("label");
+        label.className = "select-label";
+        label.textContent =
+          select.options[0]?.textContent || "Select an option";
+        select.insertAdjacentElement("afterend", label);
+      }
+      const visible = select.value !== "";
+      label.classList.toggle("floating-label-visible", visible);
+      label.classList.toggle("floating-label-hidden", !visible);
+    };
+    const labelHandler = (event) => {
+      if (event.target.matches(".group.floating-label select"))
+        updateSelectLabel(event.target);
+    };
+
+    // Initialize new markup without adding element-level listeners.
     const initVisuals = () => {
-      // Create a floating label from the select's first option.
       document
         .querySelectorAll(".group.floating-label select")
-        .forEach((select) => {
-          const existing = select.nextElementSibling?.classList.contains(
-            "select-label",
-          )
-            ? select.nextElementSibling
-            : null;
-          if (select.labelToggle) return;
-          const label = existing || document.createElement("label");
-          label.className = "select-label floating-label-hidden";
-          label.textContent =
-            select.options[0]?.textContent || "Select an option";
-          select.insertAdjacentElement("afterend", label);
-
-          select.labelToggle = () => {
-            const visible = select.value !== "";
-            label.classList.toggle("floating-label-visible", visible);
-            label.classList.toggle("floating-label-hidden", !visible);
-          };
-
-          select.addEventListener("change", select.labelToggle);
-          select.labelToggle();
-        });
+        .forEach(updateSelectLabel);
 
       // Create feedback containers for fields already in the document.
       document
@@ -564,30 +602,23 @@ export default class Form {
     // Attach delegated listeners.
     document.addEventListener("submit", submitHandler);
     document.addEventListener("change", changeHandler);
+    document.addEventListener("change", labelHandler, true);
     document.addEventListener("input", inputHandler);
     document.addEventListener("blur", blurHandler, true);
-    initVisuals();
-    return () => {
-      disposed = true;
-      requests.forEach(({ controller, timeoutId, submitBtn }) => {
-        clearTimeout(timeoutId);
-        controller.abort();
-        submitBtn?.classList.remove(CONFIG.classes.loading);
-        if (submitBtn) submitBtn.disabled = false;
-      });
-      requests.clear();
-      document.removeEventListener("submit", submitHandler);
-      document.removeEventListener("change", changeHandler);
-      document.removeEventListener("input", inputHandler);
-      document.removeEventListener("blur", blurHandler, true);
-      document
-        .querySelectorAll(".group.floating-label select")
-        .forEach((select) => {
-          if (select.labelToggle) {
-            select.removeEventListener("change", select.labelToggle);
-            delete select.labelToggle;
-          }
-        });
+    return {
+      refresh: initVisuals,
+      dispose() {
+        disposed = true;
+        document.removeEventListener("submit", submitHandler);
+        document.removeEventListener("change", changeHandler);
+        document.removeEventListener("change", labelHandler, true);
+        document.removeEventListener("input", inputHandler);
+        document.removeEventListener("blur", blurHandler, true);
+        removalObserver.disconnect();
+        requests.forEach((request, form) =>
+          releaseRequest(form, request, true),
+        );
+      },
     };
   }
 }

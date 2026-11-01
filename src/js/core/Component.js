@@ -517,6 +517,10 @@ export default class Components {
    * function.
    */
   static drawer() {
+    return DelegateRegistry.subscribe("drawer", Components.#bindDrawer);
+  }
+
+  static #bindDrawer(document) {
     const CONFIG = {
       parent: ".drawer",
 
@@ -541,7 +545,12 @@ export default class Components {
     };
 
     let activeDrawer = null;
+    let pendingDrawer = null;
+    let openingTimer = null;
+    let closingTimer = null;
     let disposed = false;
+    let dispatching = false;
+    let generation = 0;
     const timers = new Set();
     const transitions = new Map();
     const drawers = new Set();
@@ -552,9 +561,13 @@ export default class Components {
         if (!disposed) callback();
       }, delay);
       timers.add(timer);
+      return timer;
     };
-    let drawerLock = false;
-    const scrollLock = new ScrollLock();
+    const cancelTimer = (timer) => {
+      clearTimeout(timer);
+      timers.delete(timer);
+    };
+    const scrollLock = new ScrollLock(document);
 
     const trapFocus = (drawer) => {
       const focusables = Array.from(
@@ -607,42 +620,115 @@ export default class Components {
       return true;
     };
 
-    const openDrawer = (drawer) => {
+    const finishClose = (drawer) => {
+      if (!drawers.has(drawer)) return;
+      generation++;
+      cancelTimer(openingTimer);
+      cancelTimer(closingTimer);
+      openingTimer = closingTimer = null;
+      const handler = transitions.get(drawer);
+      if (handler) drawer.removeEventListener("transitionend", handler);
+      transitions.delete(drawer);
+      drawers.delete(drawer);
+      drawer.classList.remove(CONFIG.classes.open);
+      drawer.removeAttribute("aria-modal");
+      drawer.removeAttribute("role");
+      releaseFocusTrap(drawer);
+      activeDrawer = null;
+      removalObserver.disconnect();
+      scrollLock.unlock();
+
+      const next = pendingDrawer;
+      pendingDrawer = null;
+      drawer.dispatchEvent(
+        new CustomEvent("hygular.drawer.closed", {
+          detail: { drawer },
+          bubbles: true,
+        }),
+      );
+      if (!disposed && !activeDrawer && next && document.contains(next))
+        openDrawer(next, true);
+    };
+
+    const removalObserver = new document.defaultView.MutationObserver(() => {
+      // Moving a drawer within the document must not close it.
+      if (activeDrawer && !document.contains(activeDrawer))
+        finishClose(activeDrawer);
+    });
+
+    const openDrawer = (drawer, approved = false) => {
       if (
         disposed ||
-        drawerLock ||
+        dispatching ||
+        !document.contains(drawer) ||
+        activeDrawer === drawer ||
         drawer.classList.contains(CONFIG.classes.open)
       )
         return;
+      if (!approved && pendingDrawer === drawer) return;
 
-      const openEvent = new CustomEvent("hygular.drawer.open", {
-        detail: { drawer },
-        bubbles: true,
-        cancelable: true,
-      });
-      drawer.dispatchEvent(openEvent);
-      if (openEvent.defaultPrevented || disposed) return;
-
-      drawerLock = true;
+      if (!approved) {
+        const openEvent = new CustomEvent("hygular.drawer.open", {
+          detail: { drawer },
+          bubbles: true,
+          cancelable: true,
+        });
+        dispatching = true;
+        try {
+          drawer.dispatchEvent(openEvent);
+        } finally {
+          dispatching = false;
+        }
+        if (
+          openEvent.defaultPrevented ||
+          disposed ||
+          !document.contains(drawer)
+        )
+          return;
+      }
+      // Validate the incoming drawer before changing the current one.
+      if (activeDrawer) {
+        pendingDrawer = drawer;
+        if (!transitions.has(activeDrawer) && !closeDrawer(activeDrawer))
+          pendingDrawer = null;
+        return;
+      }
+      const operation = ++generation;
       activeDrawer = drawer;
       drawers.add(drawer);
       drawer.setAttribute("aria-modal", "true");
       drawer.setAttribute("role", "dialog");
       drawer.setAttribute("tabindex", "-1");
+      removalObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
 
       if (!drawer.classList.contains("has-no-backdrop")) {
         scrollLock.lock();
       }
 
       DomUtils.afterPaint(() => {
-        if (!disposed && activeDrawer === drawer && drawers.has(drawer))
+        if (
+          !disposed &&
+          generation === operation &&
+          activeDrawer === drawer &&
+          !transitions.has(drawer)
+        )
           drawer.classList.add(CONFIG.classes.open);
       });
 
-      schedule(() => {
-        if (activeDrawer !== drawer) return;
+      openingTimer = schedule(() => {
+        openingTimer = null;
+        if (
+          generation !== operation ||
+          activeDrawer !== drawer ||
+          transitions.has(drawer)
+        )
+          return;
         trapFocus(drawer);
-        drawerLock = false;
+        if (disposed || generation !== operation || activeDrawer !== drawer)
+          return;
         drawer.dispatchEvent(
           new CustomEvent("hygular.drawer.opened", {
             detail: { drawer },
@@ -653,54 +739,54 @@ export default class Components {
     };
 
     const closeDrawer = (drawer) => {
-      if (!drawer.classList.contains(CONFIG.classes.open)) return;
+      if (
+        disposed ||
+        dispatching ||
+        activeDrawer !== drawer ||
+        transitions.has(drawer)
+      )
+        return false;
       const closeEvent = new CustomEvent("hygular.drawer.close", {
         detail: { drawer },
         bubbles: true,
         cancelable: true,
       });
-      drawer.dispatchEvent(closeEvent);
-      if (closeEvent.defaultPrevented) return;
-      if (activeDrawer === drawer) activeDrawer = null;
+      dispatching = true;
+      try {
+        drawer.dispatchEvent(closeEvent);
+      } finally {
+        dispatching = false;
+      }
+      if (closeEvent.defaultPrevented || disposed) return false;
+      generation++;
 
-      drawerLock = true;
+      cancelTimer(openingTimer);
+      openingTimer = null;
       drawer.classList.remove(CONFIG.classes.open);
       drawer.removeAttribute("aria-modal");
       drawer.removeAttribute("role");
       releaseFocusTrap(drawer);
 
-      let transitioned = false;
-      const cleanup = () => {
-        if (transitioned) return;
-        transitioned = true;
-        drawer.removeEventListener("transitionend", handler);
-        transitions.delete(drawer);
-        drawers.delete(drawer);
-        drawerLock = false;
-        if (!drawer.classList.contains("has-no-backdrop")) {
-          scrollLock.unlock();
-        }
-        drawer.dispatchEvent(
-          new CustomEvent("hygular.drawer.closed", {
-            detail: { drawer },
-            bubbles: true,
-          }),
-        );
-      };
-
-      const handler = (e) => {
-        if (
-          e.target !== drawer &&
-          e.target !== drawer.querySelector(CONFIG.selectors.panel)
+      const panel = drawer.querySelector(CONFIG.selectors.panel);
+      const handler = (event) => {
+        if (panel) {
+          if (event.target !== panel || event.propertyName !== "transform")
+            return;
+        } else if (
+          event.target !== drawer ||
+          event.propertyName !== "visibility"
         )
           return;
-        drawer.removeEventListener("transitionend", handler);
-        cleanup();
+        finishClose(drawer);
       };
 
       transitions.set(drawer, handler);
       drawer.addEventListener("transitionend", handler);
-      schedule(cleanup, CONFIG.defaults.transitionDuration + 50);
+      closingTimer = schedule(
+        () => finishClose(drawer),
+        CONFIG.defaults.transitionDuration + 50,
+      );
+      return true;
     };
 
     const clickHandler = (evt) => {
@@ -760,6 +846,8 @@ export default class Components {
       document.removeEventListener("click", clickHandler);
       document.removeEventListener("keydown", keyHandler);
       disposed = true;
+      pendingDrawer = null;
+      removalObserver.disconnect();
       timers.forEach(clearTimeout);
       timers.clear();
       transitions.forEach((handler, drawer) =>

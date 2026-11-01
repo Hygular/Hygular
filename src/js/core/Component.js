@@ -7,6 +7,7 @@
 
 import DomUtils from "../utils/DomUtils.js";
 import ScrollLock from "../utils/ScrollLock.js";
+import DelegateRegistry from "../utils/DelegateRegistry.js";
 export default class Components {
   static #accordionId = 0;
   /**
@@ -14,6 +15,10 @@ export default class Components {
    * cleanup function.
    */
   static alert() {
+    return DelegateRegistry.subscribe("alert", Components.#bindAlert);
+  }
+
+  static #bindAlert(document) {
     const CONFIG = {
       selector: '[data-hygular="alert"]',
 
@@ -31,75 +36,107 @@ export default class Components {
     const storage = {
       get: (key) => {
         try {
-          return localStorage.getItem(key);
+          return document.defaultView.localStorage.getItem(key);
         } catch (e) {
           return null;
         }
       },
       set: (key, val) => {
         try {
-          localStorage.setItem(key, val);
+          document.defaultView.localStorage.setItem(key, val);
         } catch (e) {}
       },
     };
 
-    document
-      .querySelectorAll(`${CONFIG.selector}[${CONFIG.attrs.persistent}="true"]`)
-      .forEach((alert) => {
-        const key = alert.getAttribute(CONFIG.attrs.dismissKey);
-        if (key && storage.get(`dismissed-${key}`)) alert.remove();
-      });
+    let disposed = false;
+    const dismissals = new Map();
+    const refresh = () => {
+      document
+        .querySelectorAll(
+          `${CONFIG.selector}[${CONFIG.attrs.persistent}="true"]`,
+        )
+        .forEach((alert) => {
+          if (dismissals.has(alert)) return;
+          const key = alert.getAttribute(CONFIG.attrs.dismissKey);
+          if (key && storage.get(`dismissed-${key}`)) alert.remove();
+        });
+    };
     const clickHandler = (evt) => {
       const closeBtn = evt.target.closest(CONFIG.selectors.closeBtn);
-      if (!closeBtn) return;
-
-      const alertElement = closeBtn.closest(CONFIG.selector);
-      if (!alertElement) return;
-
+      const alert = closeBtn?.closest(CONFIG.selector);
+      if (disposed || !alert || dismissals.has(alert)) return;
       evt.preventDefault();
 
+      const operation = { timer: null, onEnd: null, restore: null };
+      dismissals.set(alert, operation);
       const closeEvent = new CustomEvent("hygular.alert.close", {
-        detail: { alert: alertElement },
+        detail: { alert },
         cancelable: true,
       });
-      alertElement.dispatchEvent(closeEvent);
-      if (closeEvent.defaultPrevented) return;
-
-      if (alertElement.getAttribute(CONFIG.attrs.persistent) === "true") {
-        const key = alertElement.getAttribute(CONFIG.attrs.dismissKey);
-        if (key) {
-          storage.set(`dismissed-${key}`, "true");
-        }
+      alert.dispatchEvent(closeEvent);
+      if (
+        disposed ||
+        closeEvent.defaultPrevented ||
+        !document.contains(alert)
+      ) {
+        dismissals.delete(alert);
+        return;
       }
-
-      const dismissMode = alertElement.getAttribute(CONFIG.attrs.animation);
-      let isRemoved = false;
-
-      const finalizeDismiss = () => {
-        if (isRemoved) return;
-        isRemoved = true;
+      const finish = () => {
+        if (disposed || dismissals.get(alert) !== operation) return;
+        clearTimeout(operation.timer);
+        alert.removeEventListener("transitionend", operation.onEnd);
+        // Keep the operation registered while removal invokes application code.
+        alert.remove();
+        dismissals.delete(alert);
+        if (alert.getAttribute(CONFIG.attrs.persistent) === "true") {
+          const key = alert.getAttribute(CONFIG.attrs.dismissKey);
+          if (key) storage.set(`dismissed-${key}`, "true");
+        }
         document.dispatchEvent(
           new CustomEvent("hygular.alert.closed", {
-            detail: { alert: alertElement },
+            detail: { alert },
           }),
         );
-        alertElement.remove();
       };
-
-      if (dismissMode === "slide") {
-        DomUtils.slideUp(alertElement, 300).then(finalizeDismiss);
-      } else {
-        alertElement.style.transition = "opacity 0.25s ease";
-        alertElement.style.opacity = "0";
-        alertElement.addEventListener("transitionend", finalizeDismiss, {
-          once: true,
+      const saved = ["display", "transition", "opacity"].map((name) => [
+        name,
+        alert.style.getPropertyValue(name),
+        alert.style.getPropertyPriority(name),
+      ]);
+      operation.restore = () =>
+        saved.forEach(([name, value, priority]) => {
+          if (value) alert.style.setProperty(name, value, priority);
+          else alert.style.removeProperty(name);
         });
-        setTimeout(finalizeDismiss, 350);
+      if (alert.getAttribute(CONFIG.attrs.animation) === "slide") {
+        DomUtils.slideUp(alert, 300).then(finish);
+      } else {
+        operation.onEnd = (event) => {
+          if (event.target === alert && event.propertyName === "opacity")
+            finish();
+        };
+        alert.style.transition = "opacity 0.25s ease";
+        alert.style.opacity = "0";
+        alert.addEventListener("transitionend", operation.onEnd);
+        operation.timer = setTimeout(finish, 350);
       }
     };
-
     document.addEventListener("click", clickHandler);
-    return () => document.removeEventListener("click", clickHandler);
+    return {
+      refresh,
+      dispose() {
+        disposed = true;
+        document.removeEventListener("click", clickHandler);
+        dismissals.forEach((operation, alert) => {
+          clearTimeout(operation.timer);
+          alert.removeEventListener("transitionend", operation.onEnd);
+          DomUtils.cancelSlide(alert);
+          operation.restore?.();
+        });
+        dismissals.clear();
+      },
+    };
   }
 
   /**

@@ -356,6 +356,10 @@ export default class Components {
    * cleanup function.
    */
   static collapse() {
+    return DelegateRegistry.subscribe("collapse", Components.#bindCollapse);
+  }
+
+  static #bindCollapse(document) {
     const CONFIG = {
       trigger: '[data-hygular-toggle="collapse"]',
 
@@ -372,7 +376,10 @@ export default class Components {
       },
     };
 
-    const locks = new WeakSet();
+    const locks = new Set();
+    const targets = new WeakSet();
+    const buttons = new WeakMap();
+    let disposed = false;
 
     const updateState = (btn, target, isOpen) => {
       btn.classList.toggle(CONFIG.classes.open, isOpen);
@@ -394,6 +401,17 @@ export default class Components {
         const target = document.querySelector(targetSelector);
         if (!target) return;
 
+        if (buttons.get(btn) === target) return;
+        buttons.set(btn, target);
+        if (targets.has(target)) {
+          updateState(
+            btn,
+            target,
+            target.classList.contains(CONFIG.classes.open),
+          );
+          return;
+        }
+        targets.add(target);
         const isOpen =
           btn.classList.contains(CONFIG.classes.open) ||
           target.classList.contains(CONFIG.classes.open) ||
@@ -410,7 +428,12 @@ export default class Components {
     };
 
     const toggleCollapse = async (btn) => {
-      if (btn.disabled || btn.getAttribute("aria-disabled") === "true") return;
+      if (
+        disposed ||
+        btn.disabled ||
+        btn.getAttribute("aria-disabled") === "true"
+      )
+        return;
 
       const targetSelector = btn.getAttribute(CONFIG.attrs.target);
       if (!targetSelector) return;
@@ -432,7 +455,11 @@ export default class Components {
 
       target.dispatchEvent(startEvent);
 
-      if (startEvent.defaultPrevented) {
+      if (
+        disposed ||
+        startEvent.defaultPrevented ||
+        !document.contains(target)
+      ) {
         locks.delete(target);
         return;
       }
@@ -445,6 +472,10 @@ export default class Components {
         await DomUtils.slideDown(target, CONFIG.defaults.duration);
       }
 
+      if (disposed || !document.contains(target)) {
+        locks.delete(target);
+        return;
+      }
       target.dispatchEvent(
         new CustomEvent(`hygular.collapse.${isOpen ? "closed" : "opened"}`, {
           detail: { trigger: btn, target },
@@ -463,12 +494,21 @@ export default class Components {
       toggleCollapse(btn);
     };
 
-    setInitialState();
-
     document.addEventListener("click", clickHandler);
 
-    return () => {
-      document.removeEventListener("click", clickHandler);
+    return {
+      refresh: setInitialState,
+      dispose() {
+        disposed = true;
+        document.removeEventListener("click", clickHandler);
+        locks.forEach((target) => {
+          DomUtils.cancelSlide(target);
+          target.style.display = target.classList.contains(CONFIG.classes.open)
+            ? "block"
+            : "none";
+        });
+        locks.clear();
+      },
     };
   }
 

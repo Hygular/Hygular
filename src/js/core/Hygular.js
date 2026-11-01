@@ -100,15 +100,25 @@ export default class Hygular {
   init() {
     if (this.#isDisposed || typeof document === "undefined") return;
 
-    this.disposeMap?.forEach((dispose) => dispose());
-    this.disposeMap = new Map();
-
-    for (const name in this.registry.delegate) {
-      const dispose = this.registry.delegate[name]?.();
-      if (typeof dispose === "function") {
-        this.disposeMap.set(`delegate:${name}`, dispose);
+    const previous = this.disposeMap;
+    const next = new Map();
+    try {
+      for (const name in this.registry.delegate) {
+        const dispose = this.registry.delegate[name]?.();
+        if (typeof dispose === "function")
+          next.set(`delegate:${name}`, dispose);
+        if (this.#isDisposed) {
+          next.forEach((dispose) => dispose());
+          return;
+        }
       }
+    } catch (error) {
+      next.forEach((dispose) => dispose());
+      throw error;
     }
+    // Acquire replacements before releasing subscriptions with pending work.
+    this.disposeMap = next;
+    previous?.forEach((dispose) => dispose());
 
     document.querySelectorAll(LAZY_SELECTOR).forEach((el) => {
       const name = getComponentName(el);

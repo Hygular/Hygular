@@ -959,6 +959,10 @@ export default class Components {
    * cleanup.
    */
   static dropdown() {
+    return DelegateRegistry.subscribe("dropdown", Components.#bindDropdown);
+  }
+
+  static #bindDropdown(document) {
     const CONFIG = {
       selector: ".dropdown",
 
@@ -977,7 +981,10 @@ export default class Components {
       },
     };
 
+    let disposed = false;
+    const hoverTimers = new Map();
     const toggleDropdown = (drop, show) => {
+      if (disposed) return;
       show
         ? drop.classList.add(CONFIG.classes.active)
         : drop.classList.remove(CONFIG.classes.active);
@@ -1026,9 +1033,10 @@ export default class Components {
     document.addEventListener("click", clickHandler);
     document.addEventListener("keydown", keyHandler);
 
-    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      const hoverTimers = new WeakMap();
-
+    if (
+      document.defaultView.matchMedia("(hover: hover) and (pointer: fine)")
+        .matches
+    ) {
       const mouseoverHandler = (evt) => {
         const hoverEl = evt.target.closest(
           `${CONFIG.selector}[${CONFIG.attrs.triggerMode}="hover"]`,
@@ -1061,6 +1069,9 @@ export default class Components {
       document.addEventListener("mouseout", mouseoutHandler);
 
       return () => {
+        disposed = true;
+        hoverTimers.forEach(clearTimeout);
+        hoverTimers.clear();
         document.removeEventListener("click", clickHandler);
         document.removeEventListener("keydown", keyHandler);
         document.removeEventListener("mouseover", mouseoverHandler);
@@ -1069,6 +1080,7 @@ export default class Components {
     }
 
     return () => {
+      disposed = true;
       document.removeEventListener("click", clickHandler);
       document.removeEventListener("keydown", keyHandler);
     };

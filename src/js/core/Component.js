@@ -144,6 +144,10 @@ export default class Components {
    * cleanup.
    */
   static accordion() {
+    return DelegateRegistry.subscribe("accordion", Components.#bindAccordion);
+  }
+
+  static #bindAccordion(document) {
     const CONFIG = {
       selector: '[data-hygular="accordion"]',
       classes: {
@@ -161,9 +165,15 @@ export default class Components {
       },
     };
 
+    let disposed = false;
+    const roots = new WeakSet();
+    const buttons = new WeakSet();
+    const locks = new Set();
+    const panels = new Set();
     const clickHandler = async (evt) => {
       const toggler = evt.target.closest(CONFIG.selectors.toggler);
       if (
+        disposed ||
         !toggler ||
         toggler.disabled ||
         toggler.getAttribute("aria-disabled") === "true" ||
@@ -173,28 +183,31 @@ export default class Components {
       const root = toggler.closest(CONFIG.selector);
       if (!root) return;
 
-      if (root.accordionLock) return;
-      root.accordionLock = true;
+      if (locks.has(root)) return;
+      locks.add(root);
+      evt.preventDefault();
 
       const allowMultiple = root.getAttribute("data-allow-multiple") === "true";
       const isOpen = toggler.classList.contains(CONFIG.classes.open);
 
-      if (isOpen) {
-        await accordionClose(toggler);
-      } else {
-        const openedSuccessfully = await accordionOpen(toggler);
-        if (openedSuccessfully && !allowMultiple) {
-          const others = [
-            ...root.querySelectorAll(CONFIG.selectors.toggler),
-          ].filter(
-            (btn) =>
-              btn !== toggler && btn.classList.contains(CONFIG.classes.open),
-          );
-          await Promise.all(others.map((btn) => accordionClose(btn)));
+      try {
+        if (isOpen) {
+          await accordionClose(toggler);
+        } else {
+          const openedSuccessfully = await accordionOpen(toggler);
+          if (!disposed && openedSuccessfully && !allowMultiple) {
+            const others = [
+              ...root.querySelectorAll(CONFIG.selectors.toggler),
+            ].filter(
+              (btn) =>
+                btn !== toggler && btn.classList.contains(CONFIG.classes.open),
+            );
+            await Promise.all(others.map((btn) => accordionClose(btn)));
+          }
         }
+      } finally {
+        locks.delete(root);
       }
-
-      root.accordionLock = false;
     };
 
     const syncState = (button, content, open) => {
@@ -209,42 +222,62 @@ export default class Components {
       button.setAttribute("aria-controls", content.id);
     };
 
-    document.querySelectorAll(CONFIG.selector).forEach((root) => {
-      root.querySelectorAll(CONFIG.selectors.toggler).forEach((button) => {
-        const content = button.parentElement.querySelector(
+    const refresh = () =>
+      document.querySelectorAll(CONFIG.selector).forEach((root) => {
+        root.querySelectorAll(CONFIG.selectors.toggler).forEach((button) => {
+          const content = button.parentElement.querySelector(
+            CONFIG.selectors.content,
+          );
+          if (content && !buttons.has(button)) {
+            buttons.add(button);
+            syncState(
+              button,
+              content,
+              button.classList.contains(CONFIG.classes.open),
+            );
+          }
+        });
+        if (roots.has(root)) return;
+        const first = root.querySelector(CONFIG.selectors.toggler);
+        if (!first) return;
+        roots.add(root);
+        if (root.getAttribute("data-open-first") !== "true") return;
+        first.classList.add(CONFIG.classes.open);
+
+        const content = first.parentElement.querySelector(
           CONFIG.selectors.content,
         );
         if (content) {
-          syncState(
-            button,
-            content,
-            button.classList.contains(CONFIG.classes.open),
-          );
+          content.style.display = "block";
+          syncState(first, content, true);
         }
       });
-      if (root.getAttribute("data-open-first") !== "true") return;
-      const first = root.querySelector(CONFIG.selectors.toggler);
-      if (!first) return;
-
-      first.classList.add(CONFIG.classes.open);
-
-      const content = first.parentElement.querySelector(
-        CONFIG.selectors.content,
-      );
-      if (content) {
-        content.style.display = "block";
-        syncState(first, content, true);
-      }
-    });
 
     document.addEventListener("click", clickHandler);
 
-    return () => document.removeEventListener("click", clickHandler);
+    return {
+      refresh,
+      dispose() {
+        disposed = true;
+        document.removeEventListener("click", clickHandler);
+        panels.forEach((panel) => {
+          DomUtils.cancelSlide(panel);
+          const button = panel.parentElement?.querySelector(
+            CONFIG.selectors.toggler,
+          );
+          panel.style.display = button?.classList.contains(CONFIG.classes.open)
+            ? "block"
+            : "none";
+        });
+        panels.clear();
+        locks.clear();
+      },
+    };
 
     async function accordionClose(btn) {
       const item = btn.parentElement;
       const content = item.querySelector(CONFIG.selectors.content);
-      if (!content) return false;
+      if (disposed || !content) return false;
 
       const closeEvent = new CustomEvent("hygular.accordion.close", {
         detail: { trigger: btn, content, item },
@@ -252,11 +285,15 @@ export default class Components {
         cancelable: true,
       });
       item.dispatchEvent(closeEvent);
-      if (closeEvent.defaultPrevented) return false;
+      if (disposed || closeEvent.defaultPrevented || !document.contains(item))
+        return false;
 
       btn.classList.remove(CONFIG.classes.open);
       syncState(btn, content, false);
+      panels.add(content);
       await DomUtils.slideUp(content, 200);
+      panels.delete(content);
+      if (disposed || !document.contains(item)) return false;
 
       item.dispatchEvent(
         new CustomEvent("hygular.accordion.closed", {
@@ -271,7 +308,7 @@ export default class Components {
     async function accordionOpen(btn) {
       const item = btn.parentElement;
       const content = item.querySelector(CONFIG.selectors.content);
-      if (!content) return false;
+      if (disposed || !content) return false;
 
       const openEvent = new CustomEvent("hygular.accordion.open", {
         detail: { trigger: btn, content, item },
@@ -279,11 +316,15 @@ export default class Components {
         cancelable: true,
       });
       item.dispatchEvent(openEvent);
-      if (openEvent.defaultPrevented) return false;
+      if (disposed || openEvent.defaultPrevented || !document.contains(item))
+        return false;
 
       btn.classList.add(CONFIG.classes.open);
       syncState(btn, content, true);
+      panels.add(content);
       await DomUtils.slideDown(content, 200);
+      panels.delete(content);
+      if (disposed || !document.contains(item)) return false;
 
       item.dispatchEvent(
         new CustomEvent("hygular.accordion.opened", {

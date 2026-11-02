@@ -18,10 +18,10 @@ Use the CSS on its own, initialize the vanilla runtime, or manage individual com
 
 ## Installation
 
-Hygular is currently in beta. The examples below use `@hygular/core@1.0.0-beta.1`. APIs may change before the first stable release.
+Hygular is currently in beta. The examples below use `@hygular/core@1.0.0-beta.2`. APIs may change before the first stable release.
 
 ```sh
-npm install @hygular/core@1.0.0-beta.1
+npm install @hygular/core@1.0.0-beta.2
 ```
 
 ### With a bundler
@@ -59,14 +59,14 @@ Add the stylesheet to the document head:
 ```html
 <link
   rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/@hygular/core@1.0.0-beta.1/dist/css/hygular.min.css"
+  href="https://cdn.jsdelivr.net/npm/@hygular/core@1.0.0-beta.2/dist/css/hygular.min.css"
 />
 ```
 
 Place the scripts after your page content, before `</body>`:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@hygular/core@1.0.0-beta.1/dist/js/hygular.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@hygular/core@1.0.0-beta.2/dist/js/hygular.min.js"></script>
 <script>
   new Hygular();
 </script>
@@ -145,7 +145,7 @@ Do not initialize the same element through both a React hook and a separate manu
 Install the CLI only when you want source scanning and a project-specific stylesheet:
 
 ```sh
-npm install -D @hygular/cli@1.0.0-beta.1
+npm install -D @hygular/cli@beta
 ```
 
 The CLI requires Node.js 20.19.0 or later. Its parser, compiler, and watcher dependencies stay in the CLI package; installing `@hygular/core` alone does not install them.
